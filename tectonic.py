@@ -22,8 +22,16 @@ class Tectonic:
         layout_str = '\n'.join([' '.join(map(str, row)) for row in self.layout])
         return f"Board:\n{board_str}\n\nLayout:\n{layout_str}"
 
+    def place_cell(self, row, col, value):
+        if (self.board[row][col]!=0):
+            print(f"This is weird: board already containing value:self.board[row][col]")
+        else:
+            self.board[row][col]=value
+
 
 if __name__ == '__main__':
     t = Tectonic()
     t.read_from_csv("tst/t1.board.csv", "tst/t1.layout.csv")
+    print(t)
+    t.place_cell(0,1,1)
     print(t)
