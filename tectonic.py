@@ -15,6 +15,15 @@ class Cell:
         return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block})"
 
 
+def _read_csv(file_path):
+    matrix = []
+    with open(file_path, newline='') as csvfile:
+        csvreader = csv.reader(csvfile)
+        for row in csvreader:
+            matrix.append([int(cell) if cell else 0 for cell in row])
+    return matrix
+
+
 class Tectonic:
     def __init__(self):
         self.board = []
@@ -23,17 +32,9 @@ class Tectonic:
         self.blocks = []
 
     def read_from_csv(self, board_file, layout_file):
-        self.board = self._read_csv(board_file)
-        self.layout = self._read_csv(layout_file)
+        self.board = _read_csv(board_file)
+        self.layout = _read_csv(layout_file)
         self.matrix_to_cells()
-
-    def _read_csv(self, file_path):
-        matrix = []
-        with open(file_path, newline='') as csvfile:
-            csvreader = csv.reader(csvfile)
-            for row in csvreader:
-                matrix.append([int(cell) if cell else 0 for cell in row])
-        return matrix
 
     def __str__(self):
         board_str = '\n'.join([' '.join(map(str, row)) for row in self.board])
