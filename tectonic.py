@@ -76,31 +76,39 @@ class Tectonic:
         fig, ax = plt.subplots()
 
         # Hide the axes
-        ax.axis('off')
+        ax.axis('on')
 
         # Set the limits and aspect ratio
-        ax.set_xlim(-0.5, len(self.board[0])-0.5)
-        ax.set_ylim( len(self.board) -0.5 , -0.5)
+        ax.set_xlim(-0.5, len(self.board[0])+0.5)
+        ax.set_ylim( len(self.board) +0.5 , -0.5)
         ax.set_aspect('equal')
+
+        xlen=len(self.board[0])+1
+        ylen=len(self.board) + 1
 
         # Display the matrix values in the cells
         for row_idx, row in enumerate(self.board):
             for col_idx, value in enumerate(row):
+                cell=self.cells[row_idx*len(self.board[0])+col_idx]
                 if self.board[row_idx][col_idx]>0:
-                    ax.text(col_idx, row_idx, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
-                ax.text(col_idx, row_idx - 0.4, '1 2 3 4 5', ha='center', va='top', fontsize=8)
+                    ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
+                else:
+                    ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
+                # Draw vertical gridline
+                ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=1)
+            #draw horizontal gridline
+            ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1)
+        ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=1)
+        ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1)
 
-        # Draw gridlines
-        for row_idx, row in enumerate(self.board):
-            for col_idx, value in enumerate(row):
-                ax.axhline(col_idx - 0.5, xmin=0, xmax= len(self.board)-1, color='black', linewidth=1)
-                ax.axvline(row_idx - 0.5, ymin=0, ymax= len(self.board[0]), color='black', linewidth=1)
+
 
         #draw the tectonic borders
         # for row_idx, row in enumerate(self.board):
         #     for col_idx, value in enumerate(row):
-        #         if col_idx==0 or col_idx==len(self.board[0]-1) or ((col_idx>0) and not (self.layout[row_idx][col_idx] == self.layout[row_idx][col_idx-1])):
+        #         if col_idx==0: #or col_idx==len(self.board[0]-1) or ((col_idx>0) and not (self.layout[row_idx][col_idx] == self.layout[row_idx][col_idx-1])):
         #             print (f"dik : {row_idx},{ col_idx}")
+        #             ax.axvline(row_idx - 0.5, ymin=0, ymax= 1, color='black', linewidth=4)
 
         # Show the plot
         plt.show()
@@ -138,6 +146,6 @@ if __name__ == '__main__':
     t = Tectonic()
     t.read_from_csv("tst/t1.board.csv", "tst/t1.layout.csv")
     print(t)
-    t.place_cell(0, 1, 1)
-    print(t)
+    # t.place_cell(0, 1, 1)
+    # print(t)
     t.show_tectonic()
