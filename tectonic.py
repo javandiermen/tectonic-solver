@@ -1,4 +1,5 @@
 import csv
+import matplotlib.pyplot as plt
 
 
 class Cell:
@@ -63,6 +64,40 @@ class Tectonic:
         else:
             self.board[row][col] = value
 
+    def show_tectonic(self):
+        # Create a plot
+        fig, ax = plt.subplots()
+
+        # Hide the axes
+        ax.axis('off')
+
+        # Set the limits and aspect ratio
+        ax.set_xlim(-0.5, len(self.board[0])-0.5)
+        ax.set_ylim( len(self.board) -0.5 , -0.5)
+        ax.set_aspect('equal')
+
+        # Display the matrix values in the cells
+        for row_idx, row in enumerate(self.board):
+            for col_idx, value in enumerate(row):
+                if self.board[row_idx][col_idx]>0:
+                    ax.text(col_idx, row_idx, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
+                ax.text(col_idx, row_idx - 0.4, '1 2 3 4 5', ha='center', va='top', fontsize=8)
+
+        # Draw gridlines
+        for row_idx, row in enumerate(self.board):
+            for col_idx, value in enumerate(row):
+                ax.axhline(col_idx - 0.5, xmin=0, xmax= len(self.board)-1, color='black', linewidth=1)
+                ax.axvline(row_idx - 0.5, ymin=0, ymax= len(self.board[0]), color='black', linewidth=1)
+
+        #draw the tectonic borders
+        # for row_idx, row in enumerate(self.board):
+        #     for col_idx, value in enumerate(row):
+        #         if col_idx==0 or col_idx==len(self.board[0]-1) or ((col_idx>0) and not (self.layout[row_idx][col_idx] == self.layout[row_idx][col_idx-1])):
+        #             print (f"dik : {row_idx},{ col_idx}")
+
+        # Show the plot
+        plt.show()
+
 
 if __name__ == '__main__':
     t = Tectonic()
@@ -70,3 +105,4 @@ if __name__ == '__main__':
     print(t)
     t.place_cell(0, 1, 1)
     print(t)
+    t.show_tectonic()
