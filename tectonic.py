@@ -2,17 +2,19 @@ import csv
 
 
 class Cell:
-    def __init__(self, row, col, value, block):
+    def __init__(self, row, col, value, block, neighbours, possibilities):
         self.row = row
         self.col = col
         self.value = value
         self.block = block
+        self.neighbours = neighbours
+        self.possibilities = possibilities
 
     def __repr__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block})"
+        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={self.neighbours}, possibilities={self.possibilities})"
 
     def __str__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block})"
+        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={self.neighbours}, possibilities={self.possibilities})"
 
 
 def _read_csv(file_path):
@@ -35,6 +37,11 @@ class Tectonic:
         self.board = _read_csv(board_file)
         self.layout = _read_csv(layout_file)
         self.matrix_to_cells()
+        self.set_cell_possibilities()
+        #for cell in self.cells:
+            #self.set_cell_neighbours(cell)
+        for cell in self.cells:
+            self.update_block_and_neighbours_possibilities(cell)
 
     def __str__(self):
         board_str = '\n'.join([' '.join(map(str, row)) for row in self.board])
@@ -53,7 +60,7 @@ class Tectonic:
         for row_idx, row in enumerate(self.board):
             for col_idx, value in enumerate(row):
                 block_num = self.layout[row_idx][col_idx]
-                cell = Cell(row_idx, col_idx, value, block_num)
+                cell = Cell(row_idx, col_idx, value, block_num, neighbours=set(), possibilities=set())
                 self.cells.append(cell)
                 self.blocks[block_num].append(cell)
 
@@ -63,6 +70,34 @@ class Tectonic:
         else:
             self.board[row][col] = value
 
+    def set_cell_possibilities(self):
+        for cell in self.cells:
+            if cell.value == 0:
+                block_num = cell.block
+                possibilities = cell.possibilities
+                block = self.blocks[block_num]
+                for i in range(1,len(block)+1):
+                    possibilities.add(i)
+
+    def set_cell_neighbours(self,cell):
+        for other_cell in self.cells:
+            if other_cell != cell:
+                if abs(other_cell.row-cell.row) <= 1 and abs(other_cell.col-cell.col) <= 1:
+                    cell.neighbours.add(other_cell)
+
+    def update_block_and_neighbours_possibilities(self,cell):
+        #print("cell:",cell)
+        if cell.value != 0:
+            block = self.blocks[cell.block]
+            for block_mate in block:
+                #print("block_mate:",block_mate)
+                if block_mate != cell:
+                    block_mate.possibilities.discard(cell.value)
+                    #print("updated block_mate:", block_mate)
+            for neighbour in cell.neighbours:
+                #print("neighbour:",neighbour)
+                neighbour.possibilities.discard(cell.value)
+                #print("updated neighbour:", neighbour)
 
 if __name__ == '__main__':
     t = Tectonic()
