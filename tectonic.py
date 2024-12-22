@@ -12,10 +12,10 @@ class Cell:
         self.possibilities = possibilities
 
     def __repr__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={self.neighbours}, possibilities={self.possibilities})"
+        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
     def __str__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={self.neighbours}, possibilities={self.possibilities})"
+        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
 
 def _read_csv(file_path):
@@ -39,8 +39,8 @@ class Tectonic:
         self.layout = _read_csv(layout_file)
         self.matrix_to_cells()
         self.set_cell_possibilities()
-        #for cell in self.cells:
-            #self.set_cell_neighbours(cell)
+        for cell in self.cells:
+            self.set_cell_neighbours(cell)
         for cell in self.cells:
             self.update_block_and_neighbours_possibilities(cell)
 
@@ -65,18 +65,33 @@ class Tectonic:
                 self.cells.append(cell)
                 self.blocks[block_num].append(cell)
 
-    def place_cell(self, row, col, value):
-        if self.board[row][col] != 0:
+    def find_cell(self,row,col):
+        i=row*len(self.board[0])+col
+        # self.cells[i] should be the one..
+        if (self.cells[i].row != row or self.cells[i].col !=col):
+            print("strange: should be same row/col")
+        return self.cells[i]
+
+    def place(self, row, col, value):
+        cell=self.find_cell(row,col)
+        self.place_cell(cell,value)
+
+    def place_cell(self, cell, value):
+        if self.board[cell.row][cell.col] != 0:
             print(f"This is weird: board already containing value:self.board[row][col]")
+            exit(1)
         else:
-            self.board[row][col] = value
+            self.board[cell.row][cell.col] = value
+            cell.value=value
+            self.update_block_and_neighbours_possibilities(cell)
+
 
     def show_tectonic(self):
         # Create a plot
-        fig, ax = plt.subplots()
+        fig,ax = plt.subplots()
 
         # Hide the axes
-        ax.axis('on')
+        ax.axis('off')
 
         # Set the limits and aspect ratio
         ax.set_xlim(-0.5, len(self.board[0])+0.5)
@@ -115,12 +130,16 @@ class Tectonic:
         for row_idx in range (1,len(self.board)):
             for col_idx in range(0, len (self.board[0])):
                 if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
-                    print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
+                    # print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
                     ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
                                linewidth=4)
 
 
         # Show the plot
+        width=9
+        height=9
+        fig.set_figwidth(width)
+        fig.set_figheight(height)
         plt.show()
 
     def set_cell_possibilities(self):
@@ -135,11 +154,13 @@ class Tectonic:
     def set_cell_neighbours(self,cell):
         for other_cell in self.cells:
             if other_cell != cell:
+                print(f"checking: [{cell.row},{cell.col}]-[{other_cell.row},{other_cell.col}]")
                 if abs(other_cell.row-cell.row) <= 1 and abs(other_cell.col-cell.col) <= 1:
+                    print(f"adding: [{other_cell.row},{other_cell.col}]")
                     cell.neighbours.add(other_cell)
 
     def update_block_and_neighbours_possibilities(self,cell):
-        #print("cell:",cell)
+        # print(f"update_block_and_neighbours_possible : cell:{cell} ")
         if cell.value != 0:
             block = self.blocks[cell.block]
             for block_mate in block:
@@ -152,10 +173,51 @@ class Tectonic:
                 neighbour.possibilities.discard(cell.value)
                 #print("updated neighbour:", neighbour)
 
+    def remove_cell_domain_x(self,cell, arvalue):
+        for i in arvalue:
+            cell.possibilities.discard(i)
+
+    def remove_domain_x(self,row,col, arvalue):
+        cell=self.find_cell(row,col)
+        for i in arvalue:
+            cell.possibilities.discard(i)
+
+    def remove_cell_domain(self,cell, value):
+        cell.possibilities.discard(value)
+
+    def remove_domain(self,row,col, value):
+        cell=self.find_cell(row,col)
+        cell.possibilities.discard(value)
+
+
 if __name__ == '__main__':
     t = Tectonic()
     t.read_from_csv("tst/t1.board.csv", "tst/t1.layout.csv")
-    print(t)
-    # t.place_cell(0, 1, 1)
     # print(t)
+    t.place(0, 1, 1)   #naked single
+    cell=t.find_cell(4,2)
+    t.remove_cell_domain_x(cell,[1,2,4])   #neighbor trio
+    t.place_cell(cell,5) #naked single
+    t.remove_domain(3,0,1)    #neighbor hidden singles 1
+    t.remove_domain(3,1,1)
+    t.remove_domain_x(4,1,[2,4])   #neighbor duo
+    t.place(4,1,1)
+    t.place(3,3,1) #hidden single
+    t.remove_domain_x(2,1,[4,5])   #neighbor duo
+    t.remove_domain_x(2,1,[2,4])   #neighbor duo
+    t.place(2, 1, 1) #naked single
+    t.remove_domain_x(1,3,[4,5])   #neighbor duo
+    t.place(1, 3, 1) #naked single
+    t.remove_domain_x(0,3,[4,5])   #block duo
+    t.place(0, 3, 3) #naked single
+    t.remove_domain_x(2,0,[2,4])   #block duo
+    t.place(2,0, 5) #naked single
+    t.place(1,1, 4) #naked single
+    t.place(1,0, 2) #naked single
+    t.place(1,2, 5) #naked single
+    t.place(2,3, 4) #naked single
+    t.place(3,2, 2) #naked single
+    t.place(3,1, 4) #naked single
+    t.place(4,3, 4) #naked single
+    t.place(3,0, 2) #naked single
     t.show_tectonic()
