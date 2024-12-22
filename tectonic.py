@@ -94,21 +94,31 @@ class Tectonic:
                     ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
                 else:
                     ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
-                # Draw vertical gridline
-                ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=1)
-            #draw horizontal gridline
-            ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1)
-        ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=1)
-        ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1)
+                # Draw vertical gridline (thick border)
+                ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth= 1 if col_idx != 0 else 4)
+            #draw horizontal gridline (thick border)
+            ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1 if row_idx != 0 else 4)
+        ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=4)
+        ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=4)
 
 
 
-        #draw the tectonic borders
-        # for row_idx, row in enumerate(self.board):
-        #     for col_idx, value in enumerate(row):
-        #         if col_idx==0: #or col_idx==len(self.board[0]-1) or ((col_idx>0) and not (self.layout[row_idx][col_idx] == self.layout[row_idx][col_idx-1])):
-        #             print (f"dik : {row_idx},{ col_idx}")
-        #             ax.axvline(row_idx - 0.5, ymin=0, ymax= 1, color='black', linewidth=4)
+        #draw the tectonic borders vertical
+        for row_idx in range (0,len(self.board)):
+            for col_idx in range(1, len (self.board[0])):
+                if self.layout[row_idx][col_idx-1] != self.layout[row_idx][col_idx]:
+                #     print(f"debug: {row_idx},{col_idx}: ymin={(ylen-(0.5+row_idx))}, ymax={(ylen-(0.5+row_idx+1))}")
+                    ax.axvline(col_idx, ymin=( (ylen-(0.5+row_idx)) / ylen), ymax=( (ylen-(0.5+row_idx+1)) / ylen), color='black',
+                               linewidth=4)
+
+        #draw the tectonic borders horizontal
+        for row_idx in range (1,len(self.board)):
+            for col_idx in range(0, len (self.board[0])):
+                if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
+                    print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
+                    ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
+                               linewidth=4)
+
 
         # Show the plot
         plt.show()
