@@ -153,7 +153,7 @@ class TectonicApp:
                 cell_frame = tk.Frame(self.root, highlightbackground="black", highlightthickness=1)
                 cell_frame.grid(row=i, column=j, sticky="nsew")  # Use grid without padding and sticky to fill the cell
                 wcell = tk.Label(cell_frame, text=self.matrix[i][j] if self.matrix[i][j] != 0 else "", width=10,
-                                height=5, borderwidth=1, relief="solid")
+                                height=5, borderwidth=0.5, relief="solid")
                 wcell.pack(fill='both', expand=True)
                 if self.matrix[i][j] == 0:
                     small_numbers = tk.Label(wcell, text= self.find_cell(i,j).show_pos(), font=("Arial", 8), anchor='nw')
@@ -172,11 +172,12 @@ class TectonicApp:
         self.root.bind("<Down>", self.move_down)
         self.root.bind("<Return>", self.enter_value)
 
+
     def update_selection(self):
         for r in range(self.rows):
             for c in range(self.cols):
                 cell_frame, wcell = self.wcells[r][c]
-                wcell.config(borderwidth=1, relief="solid")  # Reset all cells to default border
+                wcell.config(borderwidth=0, relief="solid")  # Reset all cells to default border
                 if c<=self.cols-2 and self.layout[r][c] != self.layout[r][c+1]:
                     # print(f"right: {r},{c} :{self.layout[r][c]}-{self.layout[r][c+1]}")
                     right_border = tk.Frame(cell_frame, bg="black", width=6)
@@ -191,29 +192,9 @@ class TectonicApp:
                     wcell.config(bg="white")
                 if self.matrix[r][c] == 0:
                     small_numbers = tk.Label(wcell, text=self.find_cell(r,c).show_pos(), font=("Arial", 8), anchor='nw')
+                    small_numbers.config(bg=wcell.cget("bg"))
                     small_numbers.place(relx=0.02, rely=0.02)
 
-    def update_board(self):
-        for r in range(self.rows):
-            for c in range(self.cols):
-                cell_frame, wcell = self.wcells[r][c]
-                wcell.config(borderwidth=1, relief="solid")  # Reset all cells to default border
-                if c <= self.cols - 2 and self.layout[r][c] != self.layout[r][c + 1]:
-                    # print(f"right: {r},{c} :{self.layout[r][c]}-{self.layout[r][c+1]}")
-                    right_border = tk.Frame(cell_frame, bg="black", width=6)
-                    right_border.place(relx=1.0, rely=0.0, relheight=1.0, anchor='ne')
-                if r <= self.rows - 2 and self.layout[r][c] != self.layout[r + 1][c]:
-                    # print(f"bottom: {r},{c} : {self.layout[r][c]}-{self.layout[r+1][c]}")
-                    bottom_border = tk.Frame(cell_frame, bg="black", height=6)
-                    bottom_border.place(relx=0.0, rely=1.0, relwidth=1.0, anchor='sw')
-                if r == self.selected_row and c == self.selected_col:
-                    wcell.config(bg="yellow")
-                else:
-                    wcell.config(bg="white")
-                if self.matrix[r][c] == 0:
-                    small_numbers = tk.Label(wcell, text=self.find_cell(r, c).show_pos(), font=("Arial", 8),
-                                             anchor='nw')
-                    small_numbers.place(relx=0.02, rely=0.02)
 
     def move_left(self, event):
         if self.selected_col > 0:
