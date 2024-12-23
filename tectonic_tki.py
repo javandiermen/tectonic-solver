@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import simpledialog
+from tkinter import messagebox
 import csv
 
 
@@ -143,6 +144,12 @@ class TectonicApp:
         cell = self.find_cell(row, col)
         cell.possibilities.discard(value)
 
+    def board_filled(self):
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.matrix[r][c]==0:
+                    return False
+        return True
 
 
     def create_widgets(self):
@@ -152,9 +159,10 @@ class TectonicApp:
             for j in range(self.cols):
                 cell_frame = tk.Frame(self.root, highlightbackground="black", highlightthickness=1)
                 cell_frame.grid(row=i, column=j, sticky="nsew")  # Use grid without padding and sticky to fill the cell
-                wcell = tk.Label(cell_frame, text=self.matrix[i][j] if self.matrix[i][j] != 0 else "", width=10,
-                                height=5, borderwidth=0.5, relief="solid")
+                wcell = tk.Label(cell_frame, text=self.matrix[i][j] if self.matrix[i][j] != 0 else "", width=8,
+                                height=4, borderwidth=0.5, relief="solid")
                 wcell.pack(fill='both', expand=True)
+                wcell.config(font=("Helvetica", 12, "bold"))
                 if self.matrix[i][j] == 0:
                     small_numbers = tk.Label(wcell, text= self.find_cell(i,j).show_pos(), font=("Arial", 8), anchor='nw')
                     small_numbers.place(relx=0.02, rely=0.02)
@@ -218,7 +226,7 @@ class TectonicApp:
 
     def enter_value(self, event):
         value = simpledialog.askinteger("Input", "Enter value:")
-        if value is not None:
+        if value in self.find_cell(self.selected_row,self.selected_col).possibilities:
             # self.matrix[self.selected_row][self.selected_col] = value
             self.place(self.selected_row,self.selected_col, value)
             cell_frame, wcell = self.wcells[self.selected_row][self.selected_col]
@@ -229,6 +237,11 @@ class TectonicApp:
                 small_numbers = tk.Label(wcell, text=self.find_cell(self.selected_row,self.selected_col).show_pos(), font=("Arial", 8), anchor='nw')
                 small_numbers.place(relx=0.02, rely=0.02)
             self.update_selection()
+            if self.board_filled():
+                messagebox.showinfo(title="Gefeliciteerd!", message="KLAAR! Geweldig Gespeeld")
+        else:
+            messagebox.showinfo(title="OOPS!", message="Nee, die waarde kan niet daar... (oen)")
+
 
 
 def read_matrix_from_csv(file_path):
@@ -242,9 +255,32 @@ def read_matrix_from_csv(file_path):
 
 
 if __name__ == "__main__":
-    file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
+
+    pathlocation="/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/"
+    tectonic_list = [
+        ["5x5 - level 5", "t2.board.csv", "t2.layout.csv"],
+        ["5x5 - level 6", "t1.board.csv","t1.layout.csv"],
+        ["9x5 - level 5", "t3.board.9x5.csv", "t3.layout.9x5.csv"],
+        ["9x11- level 5", "t4.board.9x11.csv", "t4.layout.9x11.csv"],
+        ["9x5 - level 7 moeilijk (100)", "t5.board.9x5.csv", "t5.layout.9x5.csv"]
+
+    ]
+
+
+    print("Tectonic-Player")
+    print("Which Tectonic you want to play:")
+    for i,val in enumerate(tectonic_list):
+        print (f"{i}: {val[0]}")
+
+    index=int(input("your choice:"))
+
+    # file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
+    # layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
+    file_path = pathlocation+tectonic_list[index][1]
+    layout_path = pathlocation+tectonic_list[index][2]
+
+    print (f"{file_path},{layout_path}")
     matrix = read_matrix_from_csv(file_path)
-    layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
     layout = read_matrix_from_csv(layout_path)
     root = tk.Tk()
     app = TectonicApp(root, matrix, layout)
