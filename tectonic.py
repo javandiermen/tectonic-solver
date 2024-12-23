@@ -202,22 +202,22 @@ if __name__ == '__main__':
     t.remove_domain(3,1,1)
     t.remove_domain_x(4,1,[2,4])   #neighbor duo
     t.place(4,1,1)
-    t.place(3,3,1) #hidden single
-    t.remove_domain_x(2,1,[4,5])   #neighbor duo
-    t.remove_domain_x(2,1,[2,4])   #neighbor duo
-    t.place(2, 1, 1) #naked single
-    t.remove_domain_x(1,3,[4,5])   #neighbor duo
-    t.place(1, 3, 1) #naked single
-    t.remove_domain_x(0,3,[4,5])   #block duo
-    t.place(0, 3, 3) #naked single
-    t.remove_domain_x(2,0,[2,4])   #block duo
-    t.place(2,0, 5) #naked single
-    t.place(1,1, 4) #naked single
-    t.place(1,0, 2) #naked single
-    t.place(1,2, 5) #naked single
-    t.place(2,3, 4) #naked single
-    t.place(3,2, 2) #naked single
-    t.place(3,1, 4) #naked single
-    t.place(4,3, 4) #naked single
-    t.place(3,0, 2) #naked single
+    # t.place(3,3,1) #hidden single
+    # t.remove_domain_x(2,1,[4,5])   #neighbor duo
+    # t.remove_domain_x(2,1,[2,4])   #neighbor duo
+    # t.place(2, 1, 1) #naked single
+    # t.remove_domain_x(1,3,[4,5])   #neighbor duo
+    # t.place(1, 3, 1) #naked single
+    # t.remove_domain_x(0,3,[4,5])   #block duo
+    # t.place(0, 3, 3) #naked single
+    # t.remove_domain_x(2,0,[2,4])   #block duo
+    # t.place(2,0, 5) #naked single
+    # t.place(1,1, 4) #naked single
+    # t.place(1,0, 2) #naked single
+    # t.place(1,2, 5) #naked single
+    # t.place(2,3, 4) #naked single
+    # t.place(3,2, 2) #naked single
+    # t.place(3,1, 4) #naked single
+    # t.place(4,3, 4) #naked single
+    # t.place(3,0, 2) #naked single
     t.show_tectonic()
