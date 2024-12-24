@@ -4,9 +4,10 @@
     <title>Tectonic Puzzle</title>
     <style>
         table { border-collapse: collapse; }
-        td { border: 1px solid black; width: 30px; height: 30px; text-align: center; }
+        td { border: 1px solid black; width: 30px; height: 30px; text-align: center; position: relative; }
         .small { font-size: 10px; }
         .selected { background-color: yellow; }
+        .thick-border { border-width: 3px; }
     </style>
 </head>
 <body>
@@ -15,11 +16,11 @@
         {% for row in puzzle %}
         <tr>
             {% for cell in row %}
-            <td>
+            <td data-row="{{ loop.index0 }}" data-col="{{ loop.parent.index0 }}">
                 {% if cell %}
                     {{ cell }}
                 {% else %}
-                    <span class="small">1, 2, 3, ...</span> <!-- Placeholder for potential values -->
+                    <span class="small">1, 2, 3, 4, 5</span> <!-- Placeholder for potential values -->
                 {% endif %}
             </td>
             {% endfor %}
@@ -27,10 +28,23 @@
         {% endfor %}
     </table>
 
+    <div id="dialog" class="dialog">
+        <div id="buttons">
+            <button class="value-btn" data-value="1">1</button>
+            <button class="value-btn" data-value="2">2</button>
+            <button class="value-btn" data-value="3">3</button>
+            <button class="value-btn" data-value="4">4</button>
+            <button class="value-btn" data-value="5">5</button>
+        </div>
+        <button id="ok-btn">OK</button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
             let table = document.getElementById('puzzleTable');
+            let dialog = document.getElementById('dialog');
             let selectedCell = null;
+            let potentialValues = [];
 
             table.addEventListener('click', (event) => {
                 if (event.target.tagName === 'TD') {
@@ -61,6 +75,9 @@
                     case 'ArrowRight':
                         if (col < table.rows[row].cells.length - 1) col++;
                         break;
+                    case 'Enter':
+                        showDialog();
+                        break;
                     default:
                         if (event.key >= '1' && event.key <= '9') {
                             selectedCell.textContent = event.key;
@@ -72,6 +89,58 @@
                 selectedCell = table.rows[row].cells[col];
                 selectedCell.classList.add('selected');
             });
+
+            function showDialog() {
+                dialog.style.display = 'block';
+                potentialValues = selectedCell.querySelector('.small').textContent.split(', ').map(Number);
+                document.querySelectorAll('.value-btn').forEach(button => {
+                    button.classList.toggle('selected', potentialValues.includes(Number(button.dataset.value)));
+                });
+            }
+
+            document.querySelectorAll('.value-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    let value = Number(button.dataset.value);
+                    if (potentialValues.includes(value)) {
+                        potentialValues = potentialValues.filter(v => v !== value);
+                    } else {
+                        potentialValues.push(value);
+                    }
+                    button.classList.toggle('selected');
+                });
+            });
+
+            document.getElementById('ok-btn').addEventListener('click', () => {
+                selectedCell.querySelector('.small').textContent = potentialValues.join(', ');
+                dialog.style.display = 'none';
+            });
+
+            // Function to update cell borders based on layout
+            function updateBorders(layout) {
+                for (let row = 0; row < layout.length; row++) {
+                    for (let col = 0; col < layout[row].length; col++) {
+                        let cell = table.rows[row].cells[col];
+                        let currentBlock = layout[row][col];
+
+                        if (row > 0 && layout[row - 1][col] !== currentBlock) {
+                            cell.style.borderTopWidth = '3px';
+                        }
+                        if (row < layout.length - 1 && layout[row + 1][col] !== currentBlock) {
+                            cell.style.borderBottomWidth = '3px';
+                        }
+                        if (col > 0 && layout[row][col - 1] !== currentBlock) {
+                            cell.style.borderLeftWidth = '3px';
+                        }
+                        if (col < layout[row].length - 1 && layout[row][col + 1] !== currentBlock) {
+                            cell.style.borderRightWidth = '3px';
+                        }
+                    }
+                }
+            }
+
+            // Use the layout data passed from the server
+            let layout = {{ layout|tojson }};
+            updateBorders(layout);
         });
     </script>
 </body>
