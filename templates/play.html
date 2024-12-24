@@ -61,6 +61,11 @@
                     case 'ArrowRight':
                         if (col < table.rows[row].cells.length - 1) col++;
                         break;
+                    default:
+                        if (event.key >= '1' && event.key <= '9') {
+                            selectedCell.textContent = event.key;
+                        }
+                        break;
                 }
 
                 selectedCell.classList.remove('selected');
