@@ -6,11 +6,12 @@
         table { border-collapse: collapse; }
         td { border: 1px solid black; width: 30px; height: 30px; text-align: center; }
         .small { font-size: 10px; }
+        .selected { background-color: yellow; }
     </style>
 </head>
 <body>
     <h1>Level {{ request.form['level'] }}</h1>
-    <table>
+    <table id="puzzleTable">
         {% for row in puzzle %}
         <tr>
             {% for cell in row %}
@@ -25,5 +26,48 @@
         </tr>
         {% endfor %}
     </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let table = document.getElementById('puzzleTable');
+            let selectedCell = null;
+
+            table.addEventListener('click', (event) => {
+                if (event.target.tagName === 'TD') {
+                    if (selectedCell) {
+                        selectedCell.classList.remove('selected');
+                    }
+                    selectedCell = event.target;
+                    selectedCell.classList.add('selected');
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (!selectedCell) return;
+
+                let row = selectedCell.parentElement.rowIndex;
+                let col = selectedCell.cellIndex;
+
+                switch (event.key) {
+                    case 'ArrowUp':
+                        if (row > 0) row--;
+                        break;
+                    case 'ArrowDown':
+                        if (row < table.rows.length - 1) row++;
+                        break;
+                    case 'ArrowLeft':
+                        if (col > 0) col--;
+                        break;
+                    case 'ArrowRight':
+                        if (col < table.rows[row].cells.length - 1) col++;
+                        break;
+                }
+
+                selectedCell.classList.remove('selected');
+                selectedCell = table.rows[row].cells[col];
+                selectedCell.classList.add('selected');
+            });
+        });
+    </script>
 </body>
 </html>
