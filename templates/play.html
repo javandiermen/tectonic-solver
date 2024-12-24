@@ -16,7 +16,7 @@
         {% for row in puzzle %}
         <tr>
             {% for cell in row %}
-            <td data-row="{{ loop.index0 }}" data-col="{{ loop.parent.index0 }}">
+            <td data-row="{{ loop.index0 }}" data-col="{{ loop.index0 }}">
                 {% if cell %}
                     {{ cell }}
                 {% else %}
