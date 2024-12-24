@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tectonic Puzzle</title>
+    <style>
+        table { border-collapse: collapse; }
+        td { border: 1px solid black; width: 30px; height: 30px; text-align: center; }
+        .small { font-size: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Level {{ request.form['level'] }}</h1>
+    <table>
+        {% for row in puzzle %}
+        <tr>
+            {% for cell in row %}
+            <td>
+                {% if cell %}
+                    {{ cell }}
+                {% else %}
+                    <span class="small">1, 2, 3, ...</span> <!-- Placeholder for potential values -->
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
