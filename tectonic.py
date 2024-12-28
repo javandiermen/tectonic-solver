@@ -17,6 +17,8 @@ class Cell:
     def __str__(self):
         return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
+    def show_pos(self):
+        return str(self.possibilities)+"    "
 
 def _read_csv(file_path):
     matrix = []
@@ -33,9 +35,13 @@ class Tectonic:
         self.layout = []
         self.cells = []
         self.blocks = []
+        self.rows=0
+        self.cols=0
 
     def read_from_csv(self, board_file, layout_file):
         self.board = _read_csv(board_file)
+        self.rows= len(self.board)
+        self.cols= len(self.board[0])
         self.layout = _read_csv(layout_file)
         self.matrix_to_cells()
         self.set_cell_possibilities()
@@ -83,8 +89,8 @@ class Tectonic:
         else:
             self.board[cell.row][cell.col] = value
             cell.value=value
+            cell.possibilities=set()
             self.update_block_and_neighbours_possibilities(cell)
-
 
     def show_tectonic(self):
         # Create a plot
@@ -154,9 +160,9 @@ class Tectonic:
     def set_cell_neighbours(self,cell):
         for other_cell in self.cells:
             if other_cell != cell:
-                print(f"checking: [{cell.row},{cell.col}]-[{other_cell.row},{other_cell.col}]")
+                # print(f"checking: [{cell.row},{cell.col}]-[{other_cell.row},{other_cell.col}]")
                 if abs(other_cell.row-cell.row) <= 1 and abs(other_cell.col-cell.col) <= 1:
-                    print(f"adding: [{other_cell.row},{other_cell.col}]")
+                    # print(f"adding: [{other_cell.row},{other_cell.col}]")
                     cell.neighbours.add(other_cell)
 
     def update_block_and_neighbours_possibilities(self,cell):
@@ -173,7 +179,7 @@ class Tectonic:
                 neighbour.possibilities.discard(cell.value)
                 #print("updated neighbour:", neighbour)
 
-    def remove_cell_domain_x(self,cell, arvalue):
+    def remove_cell_domain_x(self,cell:Cell, arvalue):
         for i in arvalue:
             cell.possibilities.discard(i)
 
@@ -182,13 +188,149 @@ class Tectonic:
         for i in arvalue:
             cell.possibilities.discard(i)
 
-    def remove_cell_domain(self,cell, value):
+    def remove_cell_domain(self,cell:Cell, value):
         cell.possibilities.discard(value)
 
     def remove_domain(self,row,col, value):
         cell=self.find_cell(row,col)
         cell.possibilities.discard(value)
 
+    def board_filled(self):
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.board[r][c]==0:
+                    return False
+        return True
+
+    def find_unique_cell(self, cells):
+        # Create a dictionary to count occurrences of each value
+        value_count = {}
+
+        # Count occurrences of each value in all sets
+        for cell in cells:
+            for value in cell.possibilities:
+                if value in value_count:
+                    value_count[value] += 1
+                else:
+                    value_count[value] = 1
+
+        # Find the cell with a unique value
+        for cell in cells:
+            for value in cell.possibilities:
+                if value_count[value] == 1:
+                    return cell, value
+
+        # If no unique cell is found, return None
+        return None, None
+
+    def find_double_cell(self, cells):
+        # Create a dictionary to count occurrences of each value
+        value_count = {}
+
+        # Count occurrences of each value in all sets
+        for cell in cells:
+            for value in cell.possibilities:
+                if value in value_count:
+                    value_count[value] += 1
+                else:
+                    value_count[value] = 1
+
+
+        double_cells=[]
+        # Find the cells with a double value
+        for value in value_count:
+            if value_count[value] == 2:
+                for cell in cells:
+                    for cell2 in cells:
+                        if not cell==cell2 and value in cell.possibilities and value in cell2.possibilities:
+                            double_cells.append([ cell, cell2, value ])
+                            break
+
+        return double_cells
+
+
+
+    def check_shared_neighbours_overlapping (self,c: Cell, c2: Cell):
+        for v in c.possibilities:
+            for n in c.neighbours:
+                for n2 in c2.neighbours:
+                    if n==n2 and v in n.possibilities:
+                        return n, v
+        return None, None
+
+    def check_block_shared_neighbours_overlapping_value(self, c:Cell, c2:Cell, v):
+        for n in c.neighbours:
+            for n2 in c2.neighbours:
+                if n == n2 and v in n.possibilities:
+                    return n, v
+        return None, None
+
+    def check_shared_3_neighbours_overlapping (self,c: Cell, c2: Cell, c3 : Cell):
+        for v in c.possibilities:
+            for n in c.neighbours:
+                for n2 in c2.neighbours:
+                    for n3 in c3.neighbours:
+                        if n==n2 and n2==n3 and v in n.possibilities:
+                            return n, v
+        return None, None
+
+    def hint(self):
+        # give a hint based on current state of board
+
+        # naked single
+        for c in self.cells:
+            if c.value==0 and len(c.possibilities)==1:
+                return  "naked single", c.row, c.col,  next(iter(c.possibilities))
+        #hidden single
+        for b in self.blocks:
+            unique_cell, unique_value = self.find_unique_cell(b)
+            if unique_cell:
+                return "hidden single", unique_cell.row, unique_cell.col, unique_value
+
+        #two cells in block share a value -> shared neigbours do not share that value
+        for b in self.blocks:
+            double_cells = self.find_double_cell(b)   #can be multiple to be checked
+            for (c,c2,value) in double_cells:
+                cell, value = self.check_block_shared_neighbours_overlapping_value(c,c2,value)
+                if cell:
+                    return "block shared neighbours remove value from domain", cell.row, cell.col, value
+
+
+        #two neigbours having 2 values -> shared_neighbours do not have those values
+        for c in self.cells:
+            if len(c.possibilities)==2:
+                    for c2 in c.neighbours:
+                        if c2.possibilities == c.possibilities:
+                            #check if there are neighbours with overlapping values
+                            cell,value  = self.check_shared_neighbours_overlapping(c, c2)
+                            if cell:
+                                return "shared_neighbours remove domain", cell.row, cell.col, value
+        #three in one block having same domain -> shared neighbours do not have those values
+        for b in self.blocks:
+            for c in b:
+                if len(c.possibilities) == 3:
+                    for c2 in b:
+                        if not c==c2 and c2.possibilities == c.possibilities:
+                            for c3 in b:
+                                if not c == c3 and not c2== c3 and c3.possibilities == c.possibilities:
+                                    # check if there are neighbours with overlapping values
+                                    cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
+                                    if cell:
+                                        return "shared_3_in block remove domain", cell.row, cell.col, value
+
+    #three neigbours (should all be neigbour amongst eachoter) having 3 same values -> shared_neighbours do not have those values
+        for c in self.cells:
+            if len(c.possibilities)==3:
+                    for c2 in c.neighbours:
+                        if c2.possibilities == c.possibilities:
+                            for c3 in c.neighbours:
+                                if not c2 == c3 and c3 in c2.neighbours and c3.possibilities == c.possibilities:
+                                    # check if there are neighbours with overlapping values
+                                    cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
+                                    if cell:
+                                        return "shared_3_neighbours remove domain", cell.row, cell.col, value
+
+        return "sorry, I also don't know yet...", 0, 0, 0
 
 if __name__ == '__main__':
     t = Tectonic()

@@ -3,11 +3,14 @@
 <head>
     <title>Tectonic Puzzle</title>
     <style>
-        table { border-collapse: collapse; }
-        td { border: 1px solid black; width: 30px; height: 30px; text-align: center; position: relative; }
-        .small { font-size: 10px; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; }
+        table { border-collapse: collapse; margin-bottom: 20px; }
+        td { border: 1px solid black; width: 80px; height: 80px; text-align: center; position: relative; font-size: 32px; font-weight: bold; }
+        .small { font-size: 12px; position: absolute; top: 2px; left: 2px; right: 2px; text-align: center; }
         .selected { background-color: yellow; }
-        .thick-border { border-width: 3px; }
+        .thick-border { border-width: 5px; }
+        .buttons-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .value-btn { padding: 15px; font-size: 24px; }
     </style>
 </head>
 <body>
@@ -20,7 +23,7 @@
                 {% if cell %}
                     {{ cell }}
                 {% else %}
-                    <span class="small">1, 2, 3, 4, 5</span> <!-- Placeholder for potential values -->
+                    <span class="small"></span> <!-- Placeholder for potential values -->
                 {% endif %}
             </td>
             {% endfor %}
@@ -28,23 +31,99 @@
         {% endfor %}
     </table>
 
-    <div id="dialog" class="dialog">
-        <div id="buttons">
-            <button class="value-btn" data-value="1">1</button>
-            <button class="value-btn" data-value="2">2</button>
-            <button class="value-btn" data-value="3">3</button>
-            <button class="value-btn" data-value="4">4</button>
-            <button class="value-btn" data-value="5">5</button>
-        </div>
-        <button id="ok-btn">OK</button>
+    <div id="buttons" class="buttons-container">
+        <button class="value-btn" data-value="1">1</button>
+        <button class="value-btn" data-value="2">2</button>
+        <button class="value-btn" data-value="3">3</button>
+        <button class="value-btn" data-value="4">4</button>
+        <button class="value-btn" data-value="5">5</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
             let table = document.getElementById('puzzleTable');
-            let dialog = document.getElementById('dialog');
-            let selectedCell = null;
+            let selectedCell = table.rows[0].cells[0]; // Default select the first cell
+            selectedCell.classList.add('selected');
             let potentialValues = [];
+
+            function calculatePotentialValues(layout) {
+                let blockSizes = {};
+                let blockValues = {};
+
+                // Calculate block sizes and existing values in blocks
+                for (let row = 0; row < layout.length; row++) {
+                    for (let col = 0; col < layout[row].length; col++) {
+                        let blockNumber = layout[row][col];
+                        if (!blockSizes[blockNumber]) {
+                            blockSizes[blockNumber] = 0;
+                            blockValues[blockNumber] = new Set();
+                        }
+                        blockSizes[blockNumber]++;
+                        let cellValue = table.rows[row].cells[col].textContent.trim();
+                        if (cellValue) {
+                            blockValues[blockNumber].add(Number(cellValue));
+                        }
+                    }
+                }
+
+                // Calculate potential values for each cell based on block constraints
+                for (let row = 0; row < layout.length; row++) {
+                    for (let col = 0; col < layout[row].length; col++) {
+                        let cell = table.rows[row].cells[col];
+                        if (!cell.textContent.trim()) {
+                            let blockNumber = layout[row][col];
+                            let blockSize = blockSizes[blockNumber];
+                            let existingValues = blockValues[blockNumber];
+                            let potentialValues = Array.from({ length: blockSize }, (_, i) => i + 1).filter(v => !existingValues.has(v));
+                            cell.querySelector('.small').textContent = potentialValues.join(', ');
+                        }
+                    }
+                }
+            }
+
+            function updatePotentialValuesBasedOnSurroundingCells(puzzle, layout) {
+                let changes = [];
+                for (let row = 0; row < puzzle.length; row++) {
+                    for (let col = 0; col < puzzle[row].length; col++) {
+                        let cellValue = puzzle[row][col];
+                        if (cellValue !== null) {
+                            for (let i = -1; i <= 1; i++) {
+                                for (let j = -1; j <= 1; j++) {
+                                    if (i === 0 && j === 0) continue;
+                                    let newRow = row + i;
+                                    let newCol = col + j;
+                                    if (newRow >= 0 && newRow < puzzle.length && newCol >= 0 && newCol < puzzle[row].length) {
+                                        let adjacentCell = table.rows[newRow].cells[newCol];
+                                        if (!adjacentCell.textContent.trim()) {
+                                            let originalPotentialValues = adjacentCell.querySelector('.small').textContent.split(', ').map(Number);
+                                            let potentialValues = originalPotentialValues.filter(v => v !== cellValue);
+                                            adjacentCell.querySelector('.small').textContent = potentialValues.join(', ');
+                                            let removedValues = originalPotentialValues.filter(v => !potentialValues.includes(v));
+                                            if (removedValues.length > 0) {
+                                                changes.push(`Cell (${newRow}, ${newCol}) - Removed values: ${removedValues}`);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                console.log("Changes made to the potential values:");
+                changes.forEach(change => console.log(change));
+            }
+
+            function updateButtons() {
+                let cellValue = selectedCell.textContent.trim();
+                if (cellValue && !selectedCell.querySelector('.small')) {
+                    potentialValues = [Number(cellValue)];
+                } else {
+                    potentialValues = selectedCell.querySelector('.small').textContent.split(', ').map(Number);
+                }
+                document.querySelectorAll('.value-btn').forEach(button => {
+                    button.classList.toggle('selected', potentialValues.includes(Number(button.dataset.value)));
+                });
+            }
 
             table.addEventListener('click', (event) => {
                 if (event.target.tagName === 'TD') {
@@ -53,6 +132,7 @@
                     }
                     selectedCell = event.target;
                     selectedCell.classList.add('selected');
+                    updateButtons();
                 }
             });
 
@@ -64,19 +144,20 @@
 
                 switch (event.key) {
                     case 'ArrowUp':
+                        event.preventDefault();
                         if (row > 0) row--;
                         break;
                     case 'ArrowDown':
+                        event.preventDefault();
                         if (row < table.rows.length - 1) row++;
                         break;
                     case 'ArrowLeft':
+                        event.preventDefault();
                         if (col > 0) col--;
                         break;
                     case 'ArrowRight':
+                        event.preventDefault();
                         if (col < table.rows[row].cells.length - 1) col++;
-                        break;
-                    case 'Enter':
-                        showDialog();
                         break;
                     default:
                         if (event.key >= '1' && event.key <= '9') {
@@ -88,31 +169,25 @@
                 selectedCell.classList.remove('selected');
                 selectedCell = table.rows[row].cells[col];
                 selectedCell.classList.add('selected');
+                updateButtons();
             });
-
-            function showDialog() {
-                dialog.style.display = 'block';
-                potentialValues = selectedCell.querySelector('.small').textContent.split(', ').map(Number);
-                document.querySelectorAll('.value-btn').forEach(button => {
-                    button.classList.toggle('selected', potentialValues.includes(Number(button.dataset.value)));
-                });
-            }
 
             document.querySelectorAll('.value-btn').forEach(button => {
                 button.addEventListener('click', () => {
                     let value = Number(button.dataset.value);
-                    if (potentialValues.includes(value)) {
-                        potentialValues = potentialValues.filter(v => v !== value);
+                    if (selectedCell.textContent.trim() && !selectedCell.querySelector('.small')) {
+                        selectedCell.textContent = '';
+                        potentialValues = [value];
                     } else {
-                        potentialValues.push(value);
+                        if (potentialValues.includes(value)) {
+                            potentialValues = potentialValues.filter(v => v !== value);
+                        } else {
+                            potentialValues.push(value);
+                        }
                     }
                     button.classList.toggle('selected');
+                    selectedCell.querySelector('.small').textContent = potentialValues.join(', ');
                 });
-            });
-
-            document.getElementById('ok-btn').addEventListener('click', () => {
-                selectedCell.querySelector('.small').textContent = potentialValues.join(', ');
-                dialog.style.display = 'none';
             });
 
             // Function to update cell borders based on layout
@@ -123,16 +198,16 @@
                         let currentBlock = layout[row][col];
 
                         if (row > 0 && layout[row - 1][col] !== currentBlock) {
-                            cell.style.borderTopWidth = '3px';
+                            cell.style.borderTopWidth = '5px';
                         }
                         if (row < layout.length - 1 && layout[row + 1][col] !== currentBlock) {
-                            cell.style.borderBottomWidth = '3px';
+                            cell.style.borderBottomWidth = '5px';
                         }
                         if (col > 0 && layout[row][col - 1] !== currentBlock) {
-                            cell.style.borderLeftWidth = '3px';
+                            cell.style.borderLeftWidth = '5px';
                         }
                         if (col < layout[row].length - 1 && layout[row][col + 1] !== currentBlock) {
-                            cell.style.borderRightWidth = '3px';
+                            cell.style.borderRightWidth = '5px';
                         }
                     }
                 }
@@ -141,6 +216,11 @@
             // Use the layout data passed from the server
             let layout = {{ layout|tojson }};
             updateBorders(layout);
+            calculatePotentialValues(layout);
+            updatePotentialValuesBasedOnSurroundingCells(puzzle, layout);
+
+            // Initial button update for the default selected cell
+            updateButtons();
         });
     </script>
 </body>

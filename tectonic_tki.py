@@ -267,12 +267,14 @@ if __name__ == "__main__":
     ]
 
 
-    print("Tectonic-Player")
-    print("Which Tectonic you want to play:")
-    for i,val in enumerate(tectonic_list):
-        print (f"{i}: {val[0]}")
+    # print("Tectonic-Player")
+    # print("Which Tectonic you want to play:")
+    # for i,val in enumerate(tectonic_list):
+    #     print (f"{i}: {val[0]}")
+    #
+    # index=int(input("your choice:"))
 
-    index=int(input("your choice:"))
+    index = 4
 
     # file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
     # layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
