@@ -11,26 +11,48 @@ class TectonicApp:
         self.root.title("Tectonic Player")
 
         self.tec =tec
+        self.old_selected_row = 0
+        self.old_selected_col = 0
         self.selected_row = 0
         self.selected_col = 0
 
         # Initialize the StringVar for the hint label text
         self.hint_label_text = tk.StringVar()
-        self.hint_label_text.set("Initial Text")
+        self.hint_label_text.set("Here will the hints be placed")
+
+        self.auto_place = tk.BooleanVar(value=True)
+
+        # Set a minimum size for the window
+        hint_text_length = 70  # Adjust this value based on the expected length of the hint string
+        min_width = hint_text_length * 10  # Estimate width based on character count
+        min_height = 600  # Adjust this value based on the height needed for the grid and controls
+        self.root.minsize(min_width, min_height)
 
         self.create_widgets()
-        self.update_selection()
+        self.update_all()
+        #try to get focus after selecting in terminal
+        # Bring the window to the front
+        self.root.update()
+        self.root.focus_force()
+        self.root.attributes('-topmost', 1)
+        self.root.attributes('-topmost', 0)
+        # Force the window to the front
+        self.root.wm_attributes('-topmost', 1)
+        self.root.wm_attributes('-topmost', 0)
+        self.root.focus_force()
 
     def create_buttons(self, parent, values, row_start, type):
         size_mapping = {
-            "normal": {"width": 10, "height": 5},
-            "small": {"width": 5, "height": 1}
+            "normal": {"width": 8, "height": 4},
+            "small": {"width": 4, "height": 1}
         }
         for i, value in enumerate(values):
             button = tk.Button(parent, text=str(value), width=size_mapping[type]["width"], height=size_mapping[type]["height"], command=lambda v=value: self.button_pressed(type, v))
-            button.grid(row=row_start, column=i, padx=5, pady=5)
+            button.pack(side=tk.LEFT, padx=5, pady=5)
 
     def cell_clicked(self, event, row, col):
+        self.old_selected_col = self.selected_col
+        self.old_selected_row = self.selected_row
         self.selected_col = col
         self.selected_row = row
         self.update_selection()
@@ -40,19 +62,27 @@ class TectonicApp:
 
     def create_widgets(self):
         self.wcells = []
-        cell_width = 100
-        cell_height = 100
+        cell_width = 70
+        cell_height = 70
+
+        grid_width = self.tec.cols * cell_width
+        grid_height = self.tec.rows * cell_height
+
+        # Create a main frame to hold the grid
+        self.main_frame = tk.Frame(self.root, width=grid_width, height=grid_height)
+        self.main_frame.pack(padx=5, pady=5)  # Add padding around the grid
+        self.main_frame.pack_propagate(False)  # Prevent the frame from resizing to fit its content
 
         for i in range(self.tec.rows):
             row_cells = []
             for j in range(self.tec.cols):
-                cell_frame = tk.Frame(self.root, width=cell_width, height=cell_height, highlightbackground="black",
+                cell_frame = tk.Frame(self.main_frame, width=cell_width, height=cell_height, highlightbackground="black",
                                       highlightthickness=1)
                 cell_frame.grid(row=i, column=j, sticky="nsew")
                 cell_frame.grid_propagate(False)  # Prevent the frame from resizing to fit its content
 
-                wcell = tk.Label(cell_frame, text=self.tec.board[i][j] if self.tec.board[i][j] != 0 else "", width=10,
-                                 height=5, borderwidth=0.5, relief="solid")
+                wcell = tk.Label(cell_frame, text=self.tec.board[i][j] if self.tec.board[i][j] != 0 else "", width=7,
+                                 height=4, borderwidth=0.5, relief="solid")
                 wcell.pack(fill='both', expand=True)
                 wcell.config(font=("Helvetica", 12, "bold"))
                 wcell.bind("<Button-1>", lambda event, row=i, col=j: self.cell_clicked(event, row, col))
@@ -63,12 +93,24 @@ class TectonicApp:
                     small_numbers.place(relx=0.02, rely=0.02)
 
                 row_cells.append((cell_frame, wcell))
+
+                #layout
+                # wcell.config(borderwidth=0, relief="solid")  # Reset all cells to default border
+                if j<=self.tec.cols-2 and self.tec.layout[i][j] != self.tec.layout[i][j+1]:
+                    # print(f"right: {r},{c} :{self.layout[r][c]}-{self.layout[r][c+1]}")
+                    right_border = tk.Frame(cell_frame, bg="black", width=6)
+                    right_border.place(relx=1.0, rely=0.0, relheight=1.0, anchor='ne')
+                if i<=self.tec.rows-2 and self.tec.layout[i][j] != self.tec.layout[i+1][j]:
+                    # print(f"bottom: {r},{c} : {self.layout[r][c]}-{self.layout[r+1][c]}")
+                    bottom_border = tk.Frame(cell_frame, bg="black", height=6)
+                    bottom_border.place(relx=0.0, rely=1.0, relwidth=1.0, anchor='sw')
+
             self.wcells.append(row_cells)
 
         for i in range(self.tec.rows):
-            self.root.grid_rowconfigure(i, weight=1)
+            self.main_frame.grid_rowconfigure(i, weight=1)
         for j in range(self.tec.cols):
-            self.root.grid_columnconfigure(j, weight=1)
+            self.main_frame.grid_columnconfigure(j, weight=1)
 
         self.root.bind("<Left>", self.move_left)
         self.root.bind("<Right>", self.move_right)
@@ -80,30 +122,37 @@ class TectonicApp:
             self.root.bind(str(i), self.number_pressed)
 
         # Create a separate frame for the controls and use grid
+        # Create a separate frame for the controls and use pack
         self.control_frame = tk.Frame(self.root)
-        self.control_frame.grid(row=self.tec.rows, column=0, columnspan=self.tec.cols, pady=10, sticky="ew")
+        self.control_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
 
-        # Create a frame for the buttons
-        self.buttons_frame = tk.Frame(self.control_frame)
-        self.buttons_frame.pack(side=tk.TOP, padx=10)
+        # Create a frame for the largest buttons
+        self.large_buttons_frame = tk.Frame(self.control_frame)
+        self.large_buttons_frame.pack(side=tk.TOP, pady=5)
 
-        self.create_buttons(self.buttons_frame, range(1, 6), 0, "normal")
-        self.create_buttons(self.buttons_frame, range(1, 6), 1, "small")
+        self.create_buttons(self.large_buttons_frame, range(1, 6), 0, "normal")
 
-        # Create the hint button in the buttons frame
-        self.hint_button = tk.Button(self.buttons_frame, text="Hint", command=self.hint)
-        self.hint_button.grid(row=2, column=2, columnspan=1, pady=10)
+        # Create a frame for the smaller buttons
+        self.small_buttons_frame = tk.Frame(self.control_frame)
+        self.small_buttons_frame.pack(side=tk.TOP, pady=5)
 
-        # Create a frame for the hint label below the buttons
-        self.hint_label_frame = tk.Frame(self.control_frame)
-        self.hint_label_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
+        self.create_buttons(self.small_buttons_frame, range(1, 6), 1, "small")
 
-        # Create the hint label in the hint label frame
-        self.hint_label_text = tk.StringVar()
-        self.hint_label_text.set("Initial Text")
-        self.hint_label = tk.Label(self.hint_label_frame, textvariable=self.hint_label_text)
-        self.hint_label.pack()
+        # Create the hint button below the buttons
+        hint_button_frame = tk.Frame(self.control_frame)
+        hint_button_frame.pack(side=tk.TOP)
 
+        # Create the hint button below the buttons
+        self.hint_button = tk.Button(hint_button_frame, text="Hint", command=self.hint)
+        self.hint_button.pack(side=tk.LEFT, pady=5)
+
+        # Create the checkbox next to the hint button
+        self.hint_checkbox = tk.Checkbutton(hint_button_frame, text="Auto Place", variable=self.auto_place)
+        self.hint_checkbox.pack(side=tk.LEFT, padx=10)
+
+        # Create the hint label below the hint button
+        self.hint_label = tk.Label(self.control_frame, textvariable=self.hint_label_text)
+        self.hint_label.pack(side=tk.TOP, pady=5)
     def number_pressed(self, event):
             # print(f"Number {event.char} pressed")
             self.value_entered(int(event.char))
@@ -112,11 +161,19 @@ class TectonicApp:
         self.hint()
 
     def hint(self):
-        hint,row, col, value =tec.hint()
+        hint, action, row, col, value =tec.hint()
         self.hint_label_text.set(f"hint:{hint}, row={row}, col={col}, value={value}")
+        self.old_selected_col = self.selected_col
+        self.old_selected_row = self.selected_row
         self.selected_col = col
         self.selected_row = row
         self.update_selection()
+        if self.auto_place.get():
+            if action=="place":
+                self.value_entered(value)
+            if action=="domain_remove":
+                self.tec.remove_domain (self.selected_row, self.selected_col,value)
+                self.update_domain()
 
     def button_pressed(self, type, value):
         # messagebox.showinfo("Button Pressed", f"You pressed button {value} in type {type}")
@@ -125,50 +182,92 @@ class TectonicApp:
         if type=="small":
             if value in self.tec.find_cell(self.selected_row,self.selected_col).possibilities:
                 self.tec.remove_domain (self.selected_row, self.selected_col,value)
-                self.update_selection()
+                self.update_domain()
             else:
                 messagebox.showinfo(title="OOPS!", message="Nee, die waarde zit niet in de mogelijkheden")
 
-    def update_selection(self):
+    def update_domain(self):
+        cell_frame, wcell = self.wcells[self.selected_row][self.selected_col]
+        for widget in wcell.winfo_children():
+            if isinstance(widget, tk.Label) : #and widget.cget("font") == ("Arial", 8):
+                widget.destroy()
+        if self.tec.board[self.selected_row][self.selected_col] == 0:
+            small_numbers = tk.Label(wcell,
+                                     text=self.tec.find_cell(self.selected_row, self.selected_col).show_pos(),
+                                     font=("Arial", 8), anchor='nw')
+            small_numbers.config(bg=wcell.cget("bg"))
+            small_numbers.place(relx=0.02, rely=0.02)
+
+
+    def update_all(self):
+        #after place: all fields in block + neighbours are changed -> refresh all
+        # changed to only update the previous and new selection
         for r in range(self.tec.rows):
             for c in range(self.tec.cols):
                 cell_frame, wcell = self.wcells[r][c]
-                wcell.config(borderwidth=0, relief="solid")  # Reset all cells to default border
-                if c<=self.tec.cols-2 and self.tec.layout[r][c] != self.tec.layout[r][c+1]:
-                    # print(f"right: {r},{c} :{self.layout[r][c]}-{self.layout[r][c+1]}")
-                    right_border = tk.Frame(cell_frame, bg="black", width=6)
-                    right_border.place(relx=1.0, rely=0.0, relheight=1.0, anchor='ne')
-                if r<=self.tec.rows-2 and self.tec.layout[r][c] != self.tec.layout[r+1][c]:
-                    # print(f"bottom: {r},{c} : {self.layout[r][c]}-{self.layout[r+1][c]}")
-                    bottom_border = tk.Frame(cell_frame, bg="black", height=6)
-                    bottom_border.place(relx=0.0, rely=1.0, relwidth=1.0, anchor='sw')
+
+                #destroy the small numbers if exists
+                for widget in wcell.winfo_children():
+                    if isinstance(widget, tk.Label):  # and widget.cget("font") == ("Arial", 8):
+                        widget.destroy()
+                #background color
                 if r == self.selected_row and c == self.selected_col:
                     wcell.config(bg="yellow")
                 else:
                     wcell.config(bg="white")
+
                 if self.tec.board[r][c] == 0:
                     small_numbers = tk.Label(wcell, text=self.tec.find_cell(r,c).show_pos(), font=("Arial", 8), anchor='nw')
                     small_numbers.config(bg=wcell.cget("bg"))
                     small_numbers.place(relx=0.02, rely=0.02)
 
+    def update_selection(self):
+        #changed to only update the previous and new selection
+
+        #fix old cell
+        ocell_frame, owcell = self.wcells[self.old_selected_row][self.old_selected_col]
+        owcell.config(bg="white")  #removes the labels... ?
+        if self.tec.board[self.old_selected_row][self.old_selected_col] == 0:
+             small_numbers = tk.Label(owcell, text=self.tec.find_cell(self.old_selected_row,self.old_selected_col).show_pos(), font=("Arial", 8), anchor='nw')
+             small_numbers.config(bg=owcell.cget("bg"))
+             small_numbers.place(relx=0.02, rely=0.02)
+
+        #fix selected cell
+        ncell_frame, nwcell = self.wcells[self.selected_row][self.selected_col]
+        nwcell.config(bg="yellow")
+        if self.tec.board[self.selected_row][self.selected_col] == 0:
+            small_numbers = tk.Label(nwcell, text=self.tec.find_cell(self.selected_row, self.selected_col).show_pos(),
+                                     font=("Arial", 8), anchor='nw')
+            small_numbers.config(bg=nwcell.cget("bg"))
+            small_numbers.place(relx=0.02, rely=0.02)
+
+
 
     def move_left(self, event):
         if self.selected_col > 0:
+            self.old_selected_col = self.selected_col
+            self.old_selected_row = self.selected_row
             self.selected_col -= 1
             self.update_selection()
 
     def move_right(self, event):
         if self.selected_col < self.tec.cols - 1:
+            self.old_selected_col = self.selected_col
+            self.old_selected_row = self.selected_row
             self.selected_col += 1
             self.update_selection()
 
     def move_up(self, event):
         if self.selected_row > 0:
+            self.old_selected_col = self.selected_col
+            self.old_selected_row = self.selected_row
             self.selected_row -= 1
             self.update_selection()
 
     def move_down(self, event):
         if self.selected_row < self.tec.rows - 1:
+            self.old_selected_col = self.selected_col
+            self.old_selected_row = self.selected_row
             self.selected_row += 1
             self.update_selection()
 
@@ -180,14 +279,14 @@ class TectonicApp:
             wcell.config(text=value if value != 0 else "")
             # Destroy only the small numbers label if it exists
             for widget in wcell.winfo_children():
-                if isinstance(widget, tk.Label) and widget.cget("font") == ("Arial", 8):
+                if isinstance(widget, tk.Label) : # and widget.cget("font") == ("Arial", 8):
                     widget.destroy()
             if value == 0:
                 small_numbers = tk.Label(wcell,
                                          text=self.tec.find_cell(self.selected_row, self.selected_col).show_pos(),
                                          font=("Arial", 8), anchor='nw')
                 small_numbers.place(relx=0.02, rely=0.02)
-            self.update_selection()
+            self.update_all()
             if self.tec.board_filled():
                 messagebox.showinfo(title="Gefeliciteerd!", message="KLAAR! Geweldig Gespeeld")
         else:
@@ -211,11 +310,12 @@ if __name__ == "__main__":
         ["5x5 - level 6", "t1.board.csv","t1.layout.csv"],
         ["9x5 - level 5", "t3.board.9x5.csv", "t3.layout.9x5.csv"],
         ["9x11- level 5", "t4.board.9x11.csv", "t4.layout.9x11.csv"],
-        ["9x5 - level 7 moeilijk (100)", "t5.board.9x5.csv", "t5.layout.9x5.csv"]
+        ["9x5 - level 7 moeilijk (100)", "t5.board.9x5.csv", "t5.layout.9x5.csv"],
+        ["9x11- level 7 heel moeilijk (11)", "board.9x11.11.csv", "layout.9x11.11.csv"],
 
     ]
 
-
+    #
     # print("Tectonic-Player")
     # print("Which Tectonic you want to play:")
     # for i,val in enumerate(tectonic_list):
@@ -223,7 +323,7 @@ if __name__ == "__main__":
     #
     # index=int(input("your choice:"))
 
-    index = 0
+    index=0
 
     # file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
     # layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
