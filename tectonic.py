@@ -19,7 +19,7 @@ class Cell:
         return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
     def show_pos(self):
-        return str(self.possibilities)+"    "
+        return str(self.possibilities)
 
 def _read_csv(file_path):
     matrix = []
@@ -283,12 +283,12 @@ class Tectonic:
         # naked single
         for c in self.cells:
             if c.value==0 and len(c.possibilities)==1:
-                return  "naked single", c.row, c.col,  next(iter(c.possibilities))
+                return  "naked single", "place", c.row, c.col,  next(iter(c.possibilities))
         #hidden single
         for b in self.blocks:
             unique_cell, unique_value = self.find_unique_cell(b)
             if unique_cell:
-                return "hidden single", unique_cell.row, unique_cell.col, unique_value
+                return "hidden single", "place", unique_cell.row, unique_cell.col, unique_value
 
         #two cells in block share a value -> shared neigbours do not share that value
         for b in self.blocks:
@@ -296,7 +296,7 @@ class Tectonic:
             for (c,c2,value) in double_cells:
                 cell, value = self.check_block_shared_neighbours_overlapping_value(c,c2,value)
                 if cell:
-                    return "block shared neighbours remove value from domain", cell.row, cell.col, value
+                    return "block shared neighbours remove value from domain", "domain_remove", cell.row, cell.col, value
 
 
         #two neigbours having 2 values -> shared_neighbours do not have those values
@@ -307,7 +307,7 @@ class Tectonic:
                             #check if there are neighbours with overlapping values
                             cell,value  = self.check_shared_neighbours_overlapping(c, c2)
                             if cell:
-                                return "shared_neighbours remove domain", cell.row, cell.col, value
+                                return "shared_neighbours remove domain", "domain_remove", cell.row, cell.col, value
 
         #three in one block having same domain -> shared neighbours do not have those values
         for b in self.blocks:
@@ -317,7 +317,7 @@ class Tectonic:
                     # check if there are neighbours with overlapping values
                     cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
                     if cell:
-                        return f"shared_3_in block remove domain ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col})", cell.row, cell.col, value
+                        return f"shared_3_in block remove domain ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col})", "domain_remove", cell.row, cell.col, value
 
     #three neigbours (should all be neigbour amongst eachoter) having 3 same values -> shared_neighbours do not have those values
         for c in self.cells:
@@ -329,7 +329,7 @@ class Tectonic:
                                     # check if there are neighbours with overlapping values
                                     cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
                                     if cell:
-                                        return "shared_3_neighbours remove domain", cell.row, cell.col, value
+                                        return "shared_3_neighbours remove domain", "domain_remove", cell.row, cell.col, value
 
         return "sorry, I also don't know yet...", 0, 0, 0
 
