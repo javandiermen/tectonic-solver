@@ -1,5 +1,6 @@
 import csv
 import matplotlib.pyplot as plt
+from itertools import combinations
 
 
 class Cell:
@@ -271,7 +272,9 @@ class Tectonic:
                 for n2 in c2.neighbours:
                     for n3 in c3.neighbours:
                         if n==n2 and n2==n3 and v in n.possibilities:
-                            return n, v
+                            # validate if the found shared neighbour is not one of the three
+                            if not n==c2 and not n==c3:
+                                return n, v
         return None, None
 
     def hint(self):
@@ -305,18 +308,16 @@ class Tectonic:
                             cell,value  = self.check_shared_neighbours_overlapping(c, c2)
                             if cell:
                                 return "shared_neighbours remove domain", cell.row, cell.col, value
+
         #three in one block having same domain -> shared neighbours do not have those values
         for b in self.blocks:
-            for c in b:
-                if len(c.possibilities) == 3:
-                    for c2 in b:
-                        if not c==c2 and c2.possibilities == c.possibilities:
-                            for c3 in b:
-                                if not c == c3 and not c2== c3 and c3.possibilities == c.possibilities:
-                                    # check if there are neighbours with overlapping values
-                                    cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
-                                    if cell:
-                                        return "shared_3_in block remove domain", cell.row, cell.col, value
+            empty_cells =  [cell for cell in b if cell.value == 0]
+            for c,c2,c3 in combinations(empty_cells,3):
+                if len(c.possibilities.union(c2.possibilities).union(c3.possibilities))==3 :
+                    # check if there are neighbours with overlapping values
+                    cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
+                    if cell:
+                        return f"shared_3_in block remove domain ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col})", cell.row, cell.col, value
 
     #three neigbours (should all be neigbour amongst eachoter) having 3 same values -> shared_neighbours do not have those values
         for c in self.cells:
