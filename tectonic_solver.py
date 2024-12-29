@@ -310,8 +310,10 @@ if __name__ == "__main__":
         ["5x5 - level 6", "t1.board.csv","t1.layout.csv"],
         ["9x5 - level 5", "t3.board.9x5.csv", "t3.layout.9x5.csv"],
         ["9x11- level 5", "t4.board.9x11.csv", "t4.layout.9x11.csv"],
-        ["9x5 - level 7 moeilijk (100)", "t5.board.9x5.csv", "t5.layout.9x5.csv"],
+        ["4x11- level 7", "board.4x11.118.csv", "layout.4x11.118.csv"],
+        ["9x5 - level 7 moeilijk (100) (outside neighbourhood)", "t5.board.9x5.csv", "t5.layout.9x5.csv"],
         ["9x11- level 7 heel moeilijk (11)", "board.9x11.11.csv", "layout.9x11.11.csv"],
+        ["4x5 - level 8 (46)","board.4x5.46.l8.csv", "layout.4x5.46.l8.csv"],
 
     ]
 
@@ -323,7 +325,7 @@ if __name__ == "__main__":
     #
     # index=int(input("your choice:"))
 
-    index=0
+    index=7
 
     # file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
     # layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
