@@ -1,5 +1,5 @@
 import csv
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from itertools import combinations
 
 
@@ -93,61 +93,61 @@ class Tectonic:
             cell.possibilities=set()
             self.update_block_and_neighbours_possibilities(cell)
 
-    def show_tectonic(self):
-        # Create a plot
-        fig,ax = plt.subplots()
-
-        # Hide the axes
-        ax.axis('off')
-
-        # Set the limits and aspect ratio
-        ax.set_xlim(-0.5, len(self.board[0])+0.5)
-        ax.set_ylim( len(self.board) +0.5 , -0.5)
-        ax.set_aspect('equal')
-
-        xlen=len(self.board[0])+1
-        ylen=len(self.board) + 1
-
-        # Display the matrix values in the cells
-        for row_idx, row in enumerate(self.board):
-            for col_idx, value in enumerate(row):
-                cell=self.cells[row_idx*len(self.board[0])+col_idx]
-                if self.board[row_idx][col_idx]>0:
-                    ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
-                else:
-                    ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
-                # Draw vertical gridline (thick border)
-                ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth= 1 if col_idx != 0 else 4)
-            #draw horizontal gridline (thick border)
-            ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1 if row_idx != 0 else 4)
-        ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=4)
-        ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=4)
-
-
-
-        #draw the tectonic borders vertical
-        for row_idx in range (0,len(self.board)):
-            for col_idx in range(1, len (self.board[0])):
-                if self.layout[row_idx][col_idx-1] != self.layout[row_idx][col_idx]:
-                #     print(f"debug: {row_idx},{col_idx}: ymin={(ylen-(0.5+row_idx))}, ymax={(ylen-(0.5+row_idx+1))}")
-                    ax.axvline(col_idx, ymin=( (ylen-(0.5+row_idx)) / ylen), ymax=( (ylen-(0.5+row_idx+1)) / ylen), color='black',
-                               linewidth=4)
-
-        #draw the tectonic borders horizontal
-        for row_idx in range (1,len(self.board)):
-            for col_idx in range(0, len (self.board[0])):
-                if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
-                    # print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
-                    ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
-                               linewidth=4)
-
-
-        # Show the plot
-        width=9
-        height=9
-        fig.set_figwidth(width)
-        fig.set_figheight(height)
-        plt.show()
+    # def show_tectonic(self):
+    #     # Create a plot
+    #     fig,ax = plt.subplots()
+    #
+    #     # Hide the axes
+    #     ax.axis('off')
+    #
+    #     # Set the limits and aspect ratio
+    #     ax.set_xlim(-0.5, len(self.board[0])+0.5)
+    #     ax.set_ylim( len(self.board) +0.5 , -0.5)
+    #     ax.set_aspect('equal')
+    #
+    #     xlen=len(self.board[0])+1
+    #     ylen=len(self.board) + 1
+    #
+    #     # Display the matrix values in the cells
+    #     for row_idx, row in enumerate(self.board):
+    #         for col_idx, value in enumerate(row):
+    #             cell=self.cells[row_idx*len(self.board[0])+col_idx]
+    #             if self.board[row_idx][col_idx]>0:
+    #                 ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
+    #             else:
+    #                 ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
+    #             # Draw vertical gridline (thick border)
+    #             ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth= 1 if col_idx != 0 else 4)
+    #         #draw horizontal gridline (thick border)
+    #         ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1 if row_idx != 0 else 4)
+    #     ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=4)
+    #     ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=4)
+    #
+    #
+    #
+    #     #draw the tectonic borders vertical
+    #     for row_idx in range (0,len(self.board)):
+    #         for col_idx in range(1, len (self.board[0])):
+    #             if self.layout[row_idx][col_idx-1] != self.layout[row_idx][col_idx]:
+    #             #     print(f"debug: {row_idx},{col_idx}: ymin={(ylen-(0.5+row_idx))}, ymax={(ylen-(0.5+row_idx+1))}")
+    #                 ax.axvline(col_idx, ymin=( (ylen-(0.5+row_idx)) / ylen), ymax=( (ylen-(0.5+row_idx+1)) / ylen), color='black',
+    #                            linewidth=4)
+    #
+    #     #draw the tectonic borders horizontal
+    #     for row_idx in range (1,len(self.board)):
+    #         for col_idx in range(0, len (self.board[0])):
+    #             if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
+    #                 # print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
+    #                 ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
+    #                            linewidth=4)
+    #
+    #
+    #     # Show the plot
+    #     width=9
+    #     height=9
+    #     fig.set_figwidth(width)
+    #     fig.set_figheight(height)
+    #     plt.show()
 
     def set_cell_possibilities(self):
         for cell in self.cells:
@@ -277,6 +277,19 @@ class Tectonic:
                                 return n, v
         return None, None
 
+    def check_shared_3_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell):
+        for n in c.neighbours:
+            for n2 in c2.neighbours:
+                for n3 in c3.neighbours:
+                    if n==n2 and n2==n3:                             # validate if the found shared neighbour is not one of the three
+                        if not n==c2 and not n==c3:
+                            #we've found another cell neigbouring all. if domain of that cell < overlapping domain
+                            dif_value = (c.possibilities.union(c2.possibilities).union(c3.possibilities)).difference(n)
+                            if len(dif_value)>0:
+                                return n, next(iter(dif_value))
+        return None, None
+
+
     def hint(self):
         # give a hint based on current state of board
 
@@ -319,7 +332,7 @@ class Tectonic:
                     if cell:
                         return f"shared_3_in block remove domain ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col})", "domain_remove", cell.row, cell.col, value
 
-    #three neigbours (should all be neigbour amongst eachoter) having 3 same values -> shared_neighbours do not have those values
+        #three neigbours (should all be neigbour amongst eachoter) having 3 same values -> shared_neighbours do not have those values
         for c in self.cells:
             if len(c.possibilities)==3:
                     for c2 in c.neighbours:
@@ -330,6 +343,19 @@ class Tectonic:
                                     cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
                                     if cell:
                                         return "shared_3_neighbours remove domain", "domain_remove", cell.row, cell.col, value
+
+        #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
+        for b in self.blocks:
+            empty_cells =  [cell for cell in b if cell.value == 0]
+            if len(empty_cells)==4 #4 open cells
+                for c,c2,c3 in combinations(empty_cells,3):
+                    if len(c.possibilities.union(c2.possibilities).union(c3.possibilities))==4 : #if smaller then other rule already applies
+                        # check if there is a neighbours with overlapping values
+                        cell, value = self.check_shared_3_neighbours_overlapping(c, c2, c3)
+                        if cell:
+                            return f"shared_3_in block remove domain ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col})", "domain_remove", cell.row, cell.col, value
+
+
 
         return "sorry, I also don't know yet...", 0, 0, 0
 
@@ -363,4 +389,4 @@ if __name__ == '__main__':
     # t.place(3,1, 4) #naked single
     # t.place(4,3, 4) #naked single
     # t.place(3,0, 2) #naked single
-    t.show_tectonic()
+    # t.show_tectonic()
