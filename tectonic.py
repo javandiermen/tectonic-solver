@@ -311,6 +311,47 @@ class Tectonic:
                                         return n, next(iter(neighbourhood_domain.difference(friend_domain)))
         return None, None
 
+    def differentvalue(self, c1:Cell, c2:Cell):
+        #check if these two cells (not neigbours) have connections with other cells in such away we can conclude these are different
+        colorlist=[] #start with first cell - find a path until you reach c2 if so: if size of colorlist is even -> True
+        current_cell=c1
+        colorlist.append(c1)
+        same_domain_block=[cell for cell in self.blocks[current_cell.block] if not cell in colorlist and cell.possibilities==current_cell.possibilities ]
+        same_domain_neighbour=[cell for cell in current_cell.neighbours if cell.possibilities==current_cell.possibilities]
+        same_domain=same_domain_block + [cell for cell in same_domain_neighbour if cell not in same_domain_block]
+        if not same_domain:
+            return False
+        #same domain-cell (s) found
+        print (f"Same Domain-cell found: {same_domain}")
+
+        if len(same_domain) > 1:
+            print(f"OOPS: multiple found: not yet implemented... {same_domain}")
+            return False
+
+        current_cell=same_domain[0]
+        colorlist.append(current_cell)
+        while not current_cell==c2:
+            same_domain_block = [cell for cell in self.blocks[current_cell.block] if
+                                    not cell in colorlist and cell.possibilities == current_cell.possibilities]
+            same_domain_neighbour = [cell for cell in current_cell.neighbours if
+                                    not cell in colorlist and cell.possibilities == current_cell.possibilities]
+            same_domain = same_domain_block + [cell for cell in same_domain_neighbour if
+                                               cell not in same_domain_block]
+            if not same_domain:
+                break
+            if len(same_domain)>1:
+                print (f"OOPS2: multiple found: not yet implemented...{same_domain}")
+                return False
+            print(f"More same Domain-cell found: {same_domain}")
+            current_cell=same_domain[0]
+            colorlist.append(current_cell)
+
+        print (f" {len(colorlist)}-{colorlist} ")
+        if len(colorlist)%2==0:
+            return True
+
+        return False
+
     def hint(self):
         # give a hint based on current state of board
 
@@ -403,7 +444,26 @@ class Tectonic:
                             print(f"outside 2-4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) --clean cell: ({remaining_cell.row},{remaining_cell.col} from: {value} otherwise ({cell.row},{cell.col}) domain {cell.possibilities} becomes empty")
                             return f"outside 2-4neighbourhood: (due to outside cell:({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) can not have value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
 
-
+        #coloring
+        # if there is a cell with 2 neighbours who have same 2-domain, it could be these cells are a "pair" like when they are neighbours:
+        # and similar action as "two neigbours having 2 values -> shared_neighbours do not have those values" is applicable
+        # collect all neighbours of the 2-domain neighbours and check if they either end up in same block, or being direct neighbours, so we can conclude that both of them are different / or same
+        # example:4x5 - level 8 (46)
+        for c in self.cells:
+            if len(c.possibilities)>=2:
+                empty_neighbours_2domain = [cell for cell in c.neighbours if len(cell.possibilities) == 2]
+                if len(empty_neighbours_2domain)>=2:
+                    #check if there are  matching domains... theoretically it's perhaps possible to have "multiple" ones (1,2), (3,4),(1,2),(3,4) ?
+                    for i1, i2 in combinations([i for i in range(len(empty_neighbours_2domain))], 2):
+                        if empty_neighbours_2domain[i1].possibilities ==  empty_neighbours_2domain[i2].possibilities:
+                            c1 = empty_neighbours_2domain[i1]
+                            c2 = empty_neighbours_2domain[i2]
+                            print (f"potential coloring-cell found: ({c.row},{c.col}) - domain: {c.possibilities} with [({c1.row},{c1.col}) - domain: {c1.possibilities} and ({c2.row},{c2.col}) - domain: {c2.possibilities}]")
+                            if self.differentvalue(c1,c2):
+                                print (f"coloring: different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove domain  {c1.possibilities} ")
+                                for p in c1.possibilities:
+                                    if p in c.possibilities:
+                                        return f"coloring different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove value {p} ", "domain_remove", c.row, c.col, p
 
         return "sorry, I also don't know yet...", "nothing", 0, 0, 0
 
@@ -438,3 +498,6 @@ if __name__ == '__main__':
     # t.place(4,3, 4) #naked single
     # t.place(3,0, 2) #naked single
     # t.show_tectonic()
+    print("Sorry, Nothing to run here (it's quite stable).\n"
+          "Still have to think how I can make automated testcases for all knowledge steps... "
+          "-although is it really needed?-")
