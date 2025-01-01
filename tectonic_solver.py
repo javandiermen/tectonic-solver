@@ -162,6 +162,7 @@ class TectonicApp:
 
     def hint(self):
         hint, action, row, col, value =tec.hint()
+        print (f"HINT:{hint}, action:{action}, ({row},{col}), {value}")
         self.hint_label_text.set(f"hint:{hint}, row={row}, col={col}, value={value}")
         self.old_selected_col = self.selected_col
         self.old_selected_row = self.selected_row
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     #
     # index=int(input("your choice:"))
 
-    index=7
+    index=10
 
     # file_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.board.9x11.csv'
     # layout_path = '/Users/ZK38UJ/PycharmProjects/tectonic-solver/tst/t4.layout.9x11.csv'
