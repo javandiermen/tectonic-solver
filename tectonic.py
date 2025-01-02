@@ -1,5 +1,5 @@
 import csv
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from itertools import combinations
 
 
@@ -93,61 +93,61 @@ class Tectonic:
             cell.possibilities=set()
             self.update_block_and_neighbours_possibilities(cell)
 
-    # def show_tectonic(self):
-    #     # Create a plot
-    #     fig,ax = plt.subplots()
-    #
-    #     # Hide the axes
-    #     ax.axis('off')
-    #
-    #     # Set the limits and aspect ratio
-    #     ax.set_xlim(-0.5, len(self.board[0])+0.5)
-    #     ax.set_ylim( len(self.board) +0.5 , -0.5)
-    #     ax.set_aspect('equal')
-    #
-    #     xlen=len(self.board[0])+1
-    #     ylen=len(self.board) + 1
-    #
-    #     # Display the matrix values in the cells
-    #     for row_idx, row in enumerate(self.board):
-    #         for col_idx, value in enumerate(row):
-    #             cell=self.cells[row_idx*len(self.board[0])+col_idx]
-    #             if self.board[row_idx][col_idx]>0:
-    #                 ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
-    #             else:
-    #                 ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
-    #             # Draw vertical gridline (thick border)
-    #             ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth= 1 if col_idx != 0 else 4)
-    #         #draw horizontal gridline (thick border)
-    #         ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1 if row_idx != 0 else 4)
-    #     ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=4)
-    #     ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=4)
-    #
-    #
-    #
-    #     #draw the tectonic borders vertical
-    #     for row_idx in range (0,len(self.board)):
-    #         for col_idx in range(1, len (self.board[0])):
-    #             if self.layout[row_idx][col_idx-1] != self.layout[row_idx][col_idx]:
-    #             #     print(f"debug: {row_idx},{col_idx}: ymin={(ylen-(0.5+row_idx))}, ymax={(ylen-(0.5+row_idx+1))}")
-    #                 ax.axvline(col_idx, ymin=( (ylen-(0.5+row_idx)) / ylen), ymax=( (ylen-(0.5+row_idx+1)) / ylen), color='black',
-    #                            linewidth=4)
-    #
-    #     #draw the tectonic borders horizontal
-    #     for row_idx in range (1,len(self.board)):
-    #         for col_idx in range(0, len (self.board[0])):
-    #             if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
-    #                 # print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
-    #                 ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
-    #                            linewidth=4)
-    #
-    #
-    #     # Show the plot
-    #     width=9
-    #     height=9
-    #     fig.set_figwidth(width)
-    #     fig.set_figheight(height)
-    #     plt.show()
+    def show_tectonic(self):
+        # Create a plot
+        fig,ax = plt.subplots()
+
+        # Hide the axes
+        ax.axis('off')
+
+        # Set the limits and aspect ratio
+        ax.set_xlim(-0.5, len(self.board[0])+0.5)
+        ax.set_ylim( len(self.board) +0.5 , -0.5)
+        ax.set_aspect('equal')
+
+        xlen=len(self.board[0])+1
+        ylen=len(self.board) + 1
+
+        # Display the matrix values in the cells
+        for row_idx, row in enumerate(self.board):
+            for col_idx, value in enumerate(row):
+                cell=self.cells[row_idx*len(self.board[0])+col_idx]
+                if self.board[row_idx][col_idx]>0:
+                    ax.text(col_idx+0.5, row_idx+0.5, self.board[row_idx][col_idx], ha='center', va='center', fontsize=20)
+                else:
+                    ax.text(col_idx+0.5, row_idx +0.5 - 0.4, cell.possibilities, ha='center', va='top', fontsize=8)
+                # Draw vertical gridline (thick border)
+                ax.axvline(col_idx, ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth= 1 if col_idx != 0 else 4)
+            #draw horizontal gridline (thick border)
+            ax.axhline(row_idx, xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=1 if row_idx != 0 else 4)
+        ax.axvline(len(self.board[0]), ymin=(0.5 / ylen), ymax=((ylen - 0.5) / ylen), color='black', linewidth=4)
+        ax.axhline(len(self.board) , xmin=(0.5 / xlen), xmax=((xlen - 0.5) / xlen), color='black', linewidth=4)
+
+
+
+        #draw the tectonic borders vertical
+        for row_idx in range (0,len(self.board)):
+            for col_idx in range(1, len (self.board[0])):
+                if self.layout[row_idx][col_idx-1] != self.layout[row_idx][col_idx]:
+                #     print(f"debug: {row_idx},{col_idx}: ymin={(ylen-(0.5+row_idx))}, ymax={(ylen-(0.5+row_idx+1))}")
+                    ax.axvline(col_idx, ymin=( (ylen-(0.5+row_idx)) / ylen), ymax=( (ylen-(0.5+row_idx+1)) / ylen), color='black',
+                               linewidth=4)
+
+        #draw the tectonic borders horizontal
+        for row_idx in range (1,len(self.board)):
+            for col_idx in range(0, len (self.board[0])):
+                if self.layout[row_idx-1][col_idx] != self.layout[row_idx][col_idx]:
+                    # print(f"debug: {row_idx},{col_idx}: xmin={(0.5+col_idx)}, ymax={(0.5+col_idx+1)}")
+                    ax.axhline(row_idx, xmin=( (0.5+col_idx) / xlen), xmax=( (0.5+col_idx+1) / xlen), color='black',
+                               linewidth=4)
+
+
+        # Show the plot
+        width=9
+        height=9
+        fig.set_figwidth(width)
+        fig.set_figheight(height)
+        plt.show()
 
     def set_cell_possibilities(self):
         for cell in self.cells:
@@ -166,6 +166,12 @@ class Tectonic:
                     # print(f"adding: [{other_cell.row},{other_cell.col}]")
                     cell.neighbours.add(other_cell)
 
+    def check_domain_not_empty(self,cell):
+        if len(cell.possibilities) == 0 and cell.value == 0:
+            print(f"ERROR, empty domain ({cell.row},{cell.col})")
+            self.show_tectonic()
+            exit(1)
+
     def update_block_and_neighbours_possibilities(self,cell):
         # print(f"update_block_and_neighbours_possible : cell:{cell} ")
         if cell.value != 0:
@@ -174,27 +180,34 @@ class Tectonic:
                 #print("block_mate:",block_mate)
                 if block_mate != cell:
                     block_mate.possibilities.discard(cell.value)
+                    self.check_domain_not_empty(block_mate)
                     #print("updated block_mate:", block_mate)
             for neighbour in cell.neighbours:
                 #print("neighbour:",neighbour)
                 neighbour.possibilities.discard(cell.value)
+                self.check_domain_not_empty(cell)
+
                 #print("updated neighbour:", neighbour)
 
     def remove_cell_domain_x(self,cell:Cell, arvalue):
         for i in arvalue:
             cell.possibilities.discard(i)
+            self.check_domain_not_empty(cell)
 
     def remove_domain_x(self,row,col, arvalue):
         cell=self.find_cell(row,col)
         for i in arvalue:
             cell.possibilities.discard(i)
+            self.check_domain_not_empty(cell)
 
     def remove_cell_domain(self,cell:Cell, value):
         cell.possibilities.discard(value)
+        self.check_domain_not_empty(cell)
 
     def remove_domain(self,row,col, value):
         cell=self.find_cell(row,col)
         cell.possibilities.discard(value)
+        self.check_domain_not_empty(cell)
 
     def board_filled(self):
         for r in range(self.rows):
@@ -282,17 +295,46 @@ class Tectonic:
             for n2 in c2.neighbours:
                 for n3 in c3.neighbours:
                     if n==n2 and n2==n3:                             # validate if the found shared neighbour is not one of the three
-                        if not n==c2 and not n==c3:
+                        if not n==c2 and not n==c3 and n.value==0:  #and not n.block==c.block
                             #we've found another cell neigbouring all. if domain of that cell < overlapping domain
                             neighbourhood_domain =c.possibilities.union(c2.possibilities).union(c3.possibilities)
                             friend_domain=n.possibilities
                             potential_remove=neighbourhood_domain.difference(friend_domain)
+                            print (f"check_shared_3_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
+                                   f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
                             if len(friend_domain.difference(neighbourhood_domain))==0:
-                                if len(potential_remove)==1:
+                                if len(potential_remove)>=1:
                                     #only if other cell has value in domain
-                                    if next(iter(potential_remove)) in remaining_cell.possibilities:
-                                        return n, next(iter(neighbourhood_domain.difference(friend_domain)))
+                                    for p in potential_remove:
+                                        print (f"check if {p} in domain remaining cell")
+                                        if p in remaining_cell.possibilities:
+                                            print (f"remove {p} from domain")
+                                            return n, p
         return None, None
+
+    def check_shared_4_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell, c4: Cell, remaining_cell: Cell):
+        for n in c.neighbours:
+            for n2 in c2.neighbours:
+                for n3 in c3.neighbours:
+                    for n4 in c4.neighbours:
+                        if n==n2 and n2==n3 and n3==n4:                             # validate if the found shared neighbour is not one of the three
+                            if n not in [c2,c3,c4] and n.value==0:  #and not n.block==c.block
+                                #we've found another cell neigbouring all. if domain of that cell < overlapping domain
+                                neighbourhood_domain =c.possibilities.union(c2.possibilities).union(c3.possibilities)
+                                friend_domain=n.possibilities
+                                potential_remove=neighbourhood_domain.difference(friend_domain)
+                                print (f"check_shared_4_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
+                                       f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
+                                if len(friend_domain.difference(neighbourhood_domain))==0:
+                                    if len(potential_remove)>=1:
+                                        #only if other cell has value in domain
+                                        for p in potential_remove:
+                                            print (f"check if {p} in domain remaining cell")
+                                            if p in remaining_cell.possibilities:
+                                                print (f"remove {p} from domain")
+                                                return n, p
+        return None, None
+
 
     def check_shared_2_neighbours_domain(self, c: Cell, c2: Cell, remaining_cell: Cell):
         for n in c.neighbours:
@@ -322,7 +364,7 @@ class Tectonic:
         if not same_domain:
             return False
         #same domain-cell (s) found
-        print (f"Same Domain-cell found: {same_domain}")
+        # print (f"Same Domain-cell found: {same_domain}")
 
         if len(same_domain) > 1:
             print(f"OOPS: multiple found: not yet implemented... {same_domain}")
@@ -342,11 +384,11 @@ class Tectonic:
             if len(same_domain)>1:
                 print (f"OOPS2: multiple found: not yet implemented...{same_domain}")
                 return False
-            print(f"More same Domain-cell found: {same_domain}")
+            # print(f"More same Domain-cell found: {same_domain}")
             current_cell=same_domain[0]
             colorlist.append(current_cell)
 
-        print (f" {len(colorlist)}-{colorlist} ")
+        # print (f" {len(colorlist)}-{colorlist} ")
         if len(colorlist)%2==0:
             return True
 
@@ -414,10 +456,11 @@ class Tectonic:
                     if len(c.possibilities.union(c2.possibilities).union(c3.possibilities))==4 : #if smaller then other rule already applies
                         # check if there is a neighbours with overlapping values
                         remaining_cell = [cell for cell in empty_cells if cell not in [c, c2, c3]][0]
+                        print(f"one outside of 3-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})" )
                         cell, value = self.check_shared_3_neighbours_domain(c, c2, c3, remaining_cell)
                         if cell:
-                            print(f"outside 3-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}) ({cell.row},{cell.col}) outside cell not value {value}")
-                            return f"outside 3-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
+                            print(f"one outside 3-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}) ({cell.row},{cell.col}) outside cell not value {value}")
+                            return f"one outside 3-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
 
         #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
         for b in self.blocks:
@@ -429,8 +472,8 @@ class Tectonic:
                         remaining_cell = [cell for cell in empty_cells if cell not in [c, c2]][0]
                         cell, value = self.check_shared_2_neighbours_domain(c, c2, remaining_cell)
                         if cell:
-                            print(f"outside 2-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) ({remaining_cell.row},{remaining_cell.col}) outside cell not value {value}")
-                            return f"outside 2-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
+                            print(f"one outside 2-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) ({remaining_cell.row},{remaining_cell.col}) outside cell not value {value}")
+                            return f"one outside 2-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
 
         #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
         for b in self.blocks:
@@ -443,6 +486,22 @@ class Tectonic:
                         if cell:
                             print(f"outside 2-4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) --clean cell: ({remaining_cell.row},{remaining_cell.col} from: {value} otherwise ({cell.row},{cell.col}) domain {cell.possibilities} becomes empty")
                             return f"outside 2-4neighbourhood: (due to outside cell:({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) can not have value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
+
+        # one outside of 4 neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
+            for b in self.blocks:
+                empty_cells = [cell for cell in b if cell.value == 0]
+                if len(empty_cells) == 5:  # 4 open cells
+                    for c, c2, c3, c4  in combinations(empty_cells, 4):
+                        if len(c.possibilities.union(c2.possibilities).union(
+                                c3.possibilities)) >= 4:  # if smaller then other rule already applies
+                            # check if there is a neighbours with overlapping values
+                            remaining_cell = [cell for cell in empty_cells if cell not in [c, c2, c3, c4]][0]
+                            print(
+                                f"one outside of 4-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})")
+                            cell, value = self.check_shared_4_neighbours_domain(c, c2, c3, c4, remaining_cell)
+                            if cell:
+                                print( f"one outside 4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}-({c4.row},{c4.col}) ({cell.row},{cell.col}) outside cell ({remaining_cell.row},{remaining_cell.col}) not value {value}")
+                                return f"one outside 4-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} ", "domain_remove", remaining_cell.row, remaining_cell.col, value
 
         #coloring
         # if there is a cell with 2 neighbours who have same 2-domain, it could be these cells are a "pair" like when they are neighbours:
@@ -458,14 +517,29 @@ class Tectonic:
                         if empty_neighbours_2domain[i1].possibilities ==  empty_neighbours_2domain[i2].possibilities:
                             c1 = empty_neighbours_2domain[i1]
                             c2 = empty_neighbours_2domain[i2]
-                            print (f"potential coloring-cell found: ({c.row},{c.col}) - domain: {c.possibilities} with [({c1.row},{c1.col}) - domain: {c1.possibilities} and ({c2.row},{c2.col}) - domain: {c2.possibilities}]")
+                            # print (f"potential coloring-cell found: ({c.row},{c.col}) - domain: {c.possibilities} with [({c1.row},{c1.col}) - domain: {c1.possibilities} and ({c2.row},{c2.col}) - domain: {c2.possibilities}]")
                             if self.differentvalue(c1,c2):
-                                print (f"coloring: different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove domain  {c1.possibilities} ")
+                                # print (f"coloring: different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove domain  {c1.possibilities} ")
                                 for p in c1.possibilities:
                                     if p in c.possibilities:
                                         return f"coloring different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove value {p} ", "domain_remove", c.row, c.col, p
 
         return "sorry, I also don't know yet...", "nothing", 0, 0, 0
+
+
+    def solve(self):
+        action="something"
+        while not self.board_filled() and not action=="nothing":
+            hint, action, row, col, value = self.hint()
+            print (f"HINT:{hint}, action={action}, row={row}, col={col}, value={value}")
+            if action=="place":
+                print ("PLACED")
+                self.place(row,col,value)
+            if action=="domain_remove":
+                self.remove_domain (row, col,value)
+                print("DOMAIN_REMOVED")
+
+
 
 if __name__ == '__main__':
     t = Tectonic()
