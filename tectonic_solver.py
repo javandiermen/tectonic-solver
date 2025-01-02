@@ -340,7 +340,7 @@ if __name__ == "__main__":
     tec= t.Tectonic()
     tec.read_from_csv(file_path, layout_path)
 
-    tec.solve()
+    # tec.solve()
     # tec.show_tectonic()
 
     root = tk.Tk()

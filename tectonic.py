@@ -13,10 +13,12 @@ class Cell:
         self.possibilities = possibilities
 
     def __repr__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
+        return f"({self.row}, {self.col})"
+        # return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
     def __str__(self):
-        return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
+        return f"({self.row}, {self.col})"
+        # return f"Cell(row={self.row}, col={self.col}, value={self.value}, block={self.block}, neighbours={len(self.neighbours)}, possibilities={self.possibilities})"
 
     def show_pos(self):
         return str(self.possibilities)
@@ -38,6 +40,7 @@ class Tectonic:
         self.blocks = []
         self.rows=0
         self.cols=0
+        self.same_value_cells = []
 
     def read_from_csv(self, board_file, layout_file):
         self.board = _read_csv(board_file)
@@ -262,7 +265,19 @@ class Tectonic:
 
         return double_cells
 
+    def check_and_handle_same_value_cells(self, remaining_cell : Cell, n : Cell):
+        #check: if n doesn't have a value in it's domain which is already filled in the block.
+        for p in n.possibilities:
+            values_filled_in_block = [cell.value for cell in self.blocks[remaining_cell.block] if cell.value !=0 ]
+            # print (f"check {remaining_cell},{n} -> {values_filled_in_block})")
+            if p in  values_filled_in_block:
+                print (f"not same_value_cell, due to {p} in domain n= {n.possibilities}")
+                return
 
+        if not (remaining_cell, n) in self.same_value_cells:
+            print(
+                f"same_value_cells?: ({remaining_cell.row},{remaining_cell.col})=?=({n.row},{n.col})")
+            self.same_value_cells.append((remaining_cell, n))
 
     def check_shared_neighbours_overlapping (self,c: Cell, c2: Cell):
         for v in c.possibilities:
@@ -290,59 +305,115 @@ class Tectonic:
                                 return n, v
         return None, None
 
-    def check_shared_3_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell, remaining_cell: Cell):
+    def is_same_value_cell(self,cell1, cell2):
+        if (cell1,cell2) in self.same_value_cells or (cell2,cell1) in self.same_value_cells:
+            return True
+        else:
+            return False
+
+    def check_shared_3_neighbours_domain_same_value_cells(self,c: Cell, c2: Cell, c3 : Cell, remaining_cell: Cell):
+        for n in c.neighbours:
+            for n2 in c2.neighbours:
+                for n3 in c3.neighbours:
+                    if (n==n2 or self.is_same_value_cell(n,n2))  and (n2==n3 or self.is_same_value_cell(n2,n3)) and not n==n2==n3:        # it should contain same_value_cells so not all the same
+                        if  n!=c2 and n!=c3 and n.value==0 and n!=remaining_cell \
+                                and n.block!=c.block and n2.block!=c.block and n3.block!=c.block:
+                            #we've found other same_value_cells neigbouring all. if domain of those cells < overlapping domain
+                            print (f"same_value_cell_3-neighbours- found for neighbourhood {c},{c2},{c3} - same_value_cells: {n},{n2},{n3} -remaining_cell: {remaining_cell}")
+                            neighbourhood_domain = c.possibilities.union(c2.possibilities).union(c3.possibilities)
+                            friend_domain = n.possibilities
+                            potential_remove = neighbourhood_domain.difference(friend_domain)
+
+                            print (f"same_value_cell_3_neighbours_domain: remaining_cell: {remaining_cell} n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
+                            if len(friend_domain.difference(neighbourhood_domain)) == 0:
+                                if len(potential_remove) >= 1:
+                                    # only if other cell has value in domain
+                                    for p in potential_remove:
+                                        # print (f"check if {p} in domain remaining cell")
+                                        if p in remaining_cell.possibilities:
+                                            # print (f"remove {p} from domain")
+                                            return remaining_cell, p
+
+        return None, None
+    def check_shared_3_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell, remaining_cell: Cell,same_value_finder :bool = True):
         for n in c.neighbours:
             for n2 in c2.neighbours:
                 for n3 in c3.neighbours:
                     if n==n2 and n2==n3:                             # validate if the found shared neighbour is not one of the three
-                        if not n==c2 and not n==c3 and n.value==0:  #and not n.block==c.block
+                        if  n!=c2 and n!=c3 and n.value==0 and n!=remaining_cell :  #and not n.block==c.block
                             #we've found another cell neigbouring all. if domain of that cell < overlapping domain
+                            if (same_value_finder):
+                                self.check_and_handle_same_value_cells(remaining_cell, n)
+
                             neighbourhood_domain =c.possibilities.union(c2.possibilities).union(c3.possibilities)
                             friend_domain=n.possibilities
                             potential_remove=neighbourhood_domain.difference(friend_domain)
-                            print (f"check_shared_3_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
-                                   f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
+
+                            # print (f"check_shared_3_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
+                            #        f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
                             if len(friend_domain.difference(neighbourhood_domain))==0:
                                 if len(potential_remove)>=1:
                                     #only if other cell has value in domain
                                     for p in potential_remove:
-                                        print (f"check if {p} in domain remaining cell")
+                                        # print (f"check if {p} in domain remaining cell")
                                         if p in remaining_cell.possibilities:
-                                            print (f"remove {p} from domain")
+                                            # print (f"remove {p} from domain")
+                                            return remaining_cell, p
+
+                            #part 2... if domain remaining_cell > friend_domain -> remove friend_domain
+                            remaining_domain=remaining_cell.possibilities
+                            potential_remove2=friend_domain.difference(remaining_domain)
+
+                            # print (f"check_shared_3_neighbours_domain - part2: friend_cell: ({n.row},{n.col}) "
+                            #        f"n-domain={neighbourhood_domain}, r-domain={remaining_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove2)}")
+                            if len(friend_domain.difference(neighbourhood_domain))==0:
+                                if len(potential_remove2)>=1:
+                                    #only if other cell has value in domain
+                                    for p in potential_remove2:
+                                        # print (f"check if {p} in domain friend cell")
+                                        if p in n.possibilities:
+                                            # print (f"remove {p} from domain")
                                             return n, p
+
+
         return None, None
 
-    def check_shared_4_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell, c4: Cell, remaining_cell: Cell):
+    def check_shared_4_neighbours_domain (self,c: Cell, c2: Cell, c3 : Cell, c4: Cell, remaining_cell: Cell, same_value_finder :bool = True):
         for n in c.neighbours:
             for n2 in c2.neighbours:
                 for n3 in c3.neighbours:
                     for n4 in c4.neighbours:
                         if n==n2 and n2==n3 and n3==n4:                             # validate if the found shared neighbour is not one of the three
-                            if n not in [c2,c3,c4] and n.value==0:  #and not n.block==c.block
+                            if n not in [c2,c3,c4,remaining_cell] and n.value==0:  #and not n.block==c.block
                                 #we've found another cell neigbouring all. if domain of that cell < overlapping domain
+                                if (same_value_finder):
+                                    self.check_and_handle_same_value_cells(remaining_cell, n)
+
                                 neighbourhood_domain =c.possibilities.union(c2.possibilities).union(c3.possibilities)
                                 friend_domain=n.possibilities
                                 potential_remove=neighbourhood_domain.difference(friend_domain)
-                                print (f"check_shared_4_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
-                                       f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
+                                # print (f"check_shared_4_neighbours_domain: remaining_cell: ({remaining_cell.row},{remaining_cell.col}) "
+                                #        f"n-domain={neighbourhood_domain}, f-domain={friend_domain}, len f-n:{len(friend_domain.difference(neighbourhood_domain))}, len n-f:{len(potential_remove)}")
                                 if len(friend_domain.difference(neighbourhood_domain))==0:
                                     if len(potential_remove)>=1:
                                         #only if other cell has value in domain
                                         for p in potential_remove:
-                                            print (f"check if {p} in domain remaining cell")
+                                            # print (f"check if {p} in domain remaining cell")
                                             if p in remaining_cell.possibilities:
-                                                print (f"remove {p} from domain")
+                                                # print (f"remove {p} from domain")
                                                 return n, p
         return None, None
 
 
-    def check_shared_2_neighbours_domain(self, c: Cell, c2: Cell, remaining_cell: Cell):
+    def check_shared_2_neighbours_domain(self, c: Cell, c2: Cell, remaining_cell: Cell, same_value_finder : bool):
         for n in c.neighbours:
             for n2 in c2.neighbours:
-                if n == n2 :  # validate if the found shared neighbour is not one of the three
-                    if not n == c2:
+                if n == n2 :  # validate if the found shared neighbour is not the other
+                    if  n != c2 and n!= remaining_cell:
                         if len(n.possibilities)==2: #for three it can't become empty with 2 neighbours
                             # we've found another cell neigbouring all. if domain of that cell < overlapping domain
+                            if (same_value_finder):
+                                self.check_and_handle_same_value_cells(remaining_cell, n)
                             neighbourhood_domain = c.possibilities.union(c2.possibilities)
                             friend_domain = n.possibilities
                             potential_remove = neighbourhood_domain.difference(friend_domain)
@@ -448,7 +519,8 @@ class Tectonic:
                                     if cell:
                                         return "shared_3_neighbours remove domain", "domain_remove", cell.row, cell.col, value
 
-        #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
+        #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells,
+        # the remaining-cell can not contain a value not in that domain (as that will result in empty neighbour) NOR can the neighbour-cell contain values not in the remaining_cell...
         for b in self.blocks:
             empty_cells =  [cell for cell in b if cell.value == 0]
             if len(empty_cells)==4: #4 open cells
@@ -456,11 +528,17 @@ class Tectonic:
                     if len(c.possibilities.union(c2.possibilities).union(c3.possibilities))==4 : #if smaller then other rule already applies
                         # check if there is a neighbours with overlapping values
                         remaining_cell = [cell for cell in empty_cells if cell not in [c, c2, c3]][0]
-                        print(f"one outside of 3-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})" )
+                        # print(f"one outside of 3-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})" )
                         cell, value = self.check_shared_3_neighbours_domain(c, c2, c3, remaining_cell)
                         if cell:
-                            print(f"one outside 3-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}) ({cell.row},{cell.col}) outside cell not value {value}")
-                            return f"one outside 3-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
+                            # print(f"one outside 3-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}) ({cell.row},{cell.col}) outside cell not value {value}")
+                            return f"one outside 3-neighbourhood: {c},{c2},{c3} -> ({cell.row},{cell.col}) value: {value} " , "domain_remove", cell.row, cell.col, value
+
+                        #phase 2 - do the same check with "same_value_cells", as a neighbourhood connected to 2 same_value_cells is same as if it's one.
+                        cell, value = self.check_shared_3_neighbours_domain_same_value_cells(c, c2, c3, remaining_cell)
+                        if cell:
+                            # print(f"one outside 3-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}) ({cell.row},{cell.col}) outside cell not value {value}")
+                            return f"one outside 3-neighbourhood - same value cell-version: {c},{c2},{c3} -> ({cell.row},{cell.col}) value: {value} ", "domain_remove", cell.row, cell.col, value
 
         #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
         for b in self.blocks:
@@ -470,9 +548,9 @@ class Tectonic:
                     if len(c.possibilities.union(c2.possibilities))==3 : #if smaller then other rule already applies
                         # check if there is a neighbours with overlapping values
                         remaining_cell = [cell for cell in empty_cells if cell not in [c, c2]][0]
-                        cell, value = self.check_shared_2_neighbours_domain(c, c2, remaining_cell)
+                        cell, value = self.check_shared_2_neighbours_domain(c, c2, remaining_cell,True)
                         if cell:
-                            print(f"one outside 2-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) ({remaining_cell.row},{remaining_cell.col}) outside cell not value {value}")
+                            # print(f"one outside 2-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) ({remaining_cell.row},{remaining_cell.col}) outside cell not value {value}")
                             return f"one outside 2-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
 
         #one outside of neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
@@ -482,10 +560,11 @@ class Tectonic:
                 for c,c2 in combinations(empty_cells,2):
                     remaining_cells = [cell for cell in empty_cells if cell not in [c, c2]]
                     for remaining_cell in remaining_cells:
-                        cell, value = self.check_shared_2_neighbours_domain(c, c2, remaining_cell)
+                        cell, value = self.check_shared_2_neighbours_domain(c, c2, remaining_cell,False)
                         if cell:
-                            print(f"outside 2-4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) --clean cell: ({remaining_cell.row},{remaining_cell.col} from: {value} otherwise ({cell.row},{cell.col}) domain {cell.possibilities} becomes empty")
+                            # print(f"outside 2-4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col}) --clean cell: ({remaining_cell.row},{remaining_cell.col} from: {value} otherwise ({cell.row},{cell.col}) domain {cell.possibilities} becomes empty")
                             return f"outside 2-4neighbourhood: (due to outside cell:({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) can not have value: {value} " , "domain_remove", remaining_cell.row, remaining_cell.col, value
+
 
         # one outside of 4 neighbours: if in a block there are multiple cells neighbours of a cell with a domain overlapping the multiple cells, the outsider can not contain a value not in that domain (as that will result in empty neighbour)
             for b in self.blocks:
@@ -496,12 +575,13 @@ class Tectonic:
                                 c3.possibilities)) >= 4:  # if smaller then other rule already applies
                             # check if there is a neighbours with overlapping values
                             remaining_cell = [cell for cell in empty_cells if cell not in [c, c2, c3, c4]][0]
-                            print(
-                                f"one outside of 4-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})")
+                            # print(
+                                # f"one outside of 4-neighbourhood potential: remaining: ({remaining_cell.row}, {remaining_cell.col})")
                             cell, value = self.check_shared_4_neighbours_domain(c, c2, c3, c4, remaining_cell)
                             if cell:
-                                print( f"one outside 4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}-({c4.row},{c4.col}) ({cell.row},{cell.col}) outside cell ({remaining_cell.row},{remaining_cell.col}) not value {value}")
+                                # print( f"one outside 4-neighbourhood ({c.row},{c.col})-({c2.row},{c2.col})-({c3.row},{c3.col}-({c4.row},{c4.col}) ({cell.row},{cell.col}) outside cell ({remaining_cell.row},{remaining_cell.col}) not value {value}")
                                 return f"one outside 4-neighbourhood: ({cell.row},{cell.col}) -> ({remaining_cell.row},{remaining_cell.col}) value: {value} ", "domain_remove", remaining_cell.row, remaining_cell.col, value
+
 
         #coloring
         # if there is a cell with 2 neighbours who have same 2-domain, it could be these cells are a "pair" like when they are neighbours:
@@ -523,6 +603,10 @@ class Tectonic:
                                 for p in c1.possibilities:
                                     if p in c.possibilities:
                                         return f"coloring different ({c1.row},{c1.col})+({c2.row},{c2.col}) - remove value {p} ", "domain_remove", c.row, c.col, p
+
+
+
+        print (f"same_value_cells found = {self.same_value_cells}")
 
         return "sorry, I also don't know yet...", "nothing", 0, 0, 0
 
